@@ -1,42 +1,122 @@
-import React from 'react';
+"use client";
+
+import "./Features.css";
+import { motion } from "framer-motion";
+import { ScanLine, BookOpen, Trophy } from "lucide-react";
+
+const features = [
+  {
+    icon: <ScanLine size={30} />,
+    title: "AI Scan Sampah",
+    desc: "Upload foto sampah dan dapatkan identifikasi jenis otomatis menggunakan teknologi AI canggih.",
+    color: "green",
+  },
+  {
+    icon: <BookOpen size={30} />,
+    title: "Edukasi Interaktif",
+    desc: "Pelajari jenis sampah, cara pengelolaan, dan dampak lingkungan melalui konten yang menarik.",
+    color: "blue",
+  },
+  {
+    icon: <Trophy size={30} />,
+    title: "Reward & Poin",
+    desc: "Dapatkan poin setiap memilah sampah dan tukarkan dengan hadiah menarik dari mitra TongCi.",
+    color: "pink",
+  },
+];
+
+const container = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.18,
+    },
+  },
+};
+
+const item = {
+  hidden: {
+    opacity: 0,
+    y: 40,
+  },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+    },
+  },
+};
 
 export default function Features() {
-  const cards = [
-    { title: "Deteksi Otomatis", desc: "Scan sampahmu menggunakan kamera HP, AI kami akan langsung tahu jenisnya.", icon: "📸" },
-    { title: "Edukasi Interaktif", desc: "Akses materi mengasyikkan seputar cara mengolah sampah organik & anorganik.", icon: "📚" },
-    { title: "Poin & Hadiah", desc: "Kumpulkan poin dari setiap sampah yang kamu pilah dan tukarkan dengan hadiah.", icon: "🎁" }
-  ];
-
   return (
-    <section id="fitur" style={styles.section}>
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <h2 style={styles.title}>Fitur Utama TongCi</h2>
-          <p style={styles.subtitle}>Nikmati kemudahan menjaga bumi dengan dukungan teknologi modern terintegrasi.</p>
-        </div>
-        <div style={styles.grid}>
-          {cards.map((card, idx) => (
-            <div key={idx} style={styles.card}>
-              <div style={styles.icon}>{card.icon}</div>
-              <h3 style={styles.cardTitle}>{card.title}</h3>
-              <p style={styles.cardDesc}>{card.desc}</p>
-            </div>
+    <section className="features" id="fitur">
+      <div className="features-container">
+
+        <motion.span
+          className="section-tag"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          FITUR UNGGULAN
+        </motion.span>
+
+        <motion.h2
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: .1 }}
+          viewport={{ once: true }}
+        >
+          Semua yang Kamu Butuhkan
+        </motion.h2>
+
+        <motion.p
+          className="section-desc"
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: .2 }}
+          viewport={{ once: true }}
+        >
+          Platform lengkap untuk membantu kamu menjadi pahlawan lingkungan di era digital.
+        </motion.p>
+
+        <motion.div
+          className="feature-grid"
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+        >
+          {features.map((itemData, index) => (
+            <motion.div
+              key={index}
+              variants={item}
+              whileHover={{
+                y: -14,
+                scale: 1.02,
+              }}
+              className={`feature-card ${itemData.color}`}
+            >
+
+              <div className="icon-box">
+                {itemData.icon}
+              </div>
+
+              <h3>{itemData.title}</h3>
+
+              <p>{itemData.desc}</p>
+
+              <a href="#">
+                Pelajari lebih
+                <span>→</span>
+              </a>
+
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
+
       </div>
     </section>
   );
 }
-
-const styles = {
-  section: { padding: '80px 0', backgroundColor: '#ffffff' },
-  container: { maxWidth: '1200px', margin: '0 auto', padding: '0 20px' },
-  header: { textAlign: 'center', marginBottom: '50px' },
-  title: { fontSize: '36px', fontWeight: '800', color: '#1B3A24', margin: '0 0 10px 0' },
-  subtitle: { fontSize: '16px', color: '#718096', margin: 0 },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' },
-  card: { padding: '40px 30px', borderRadius: '20px', backgroundColor: '#F7FAFC', border: '1px solid #E2E8F0', textAlign: 'center' },
-  icon: { fontSize: '40px', marginBottom: '20px' },
-  cardTitle: { fontSize: '20px', fontWeight: '700', color: '#2D3748', margin: '0 0 12px 0' },
-  cardDesc: { fontSize: '14px', color: '#4A5568', lineHeight: '1.6', margin: 0 }
-};

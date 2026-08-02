@@ -1,31 +1,35 @@
 "use client";
 
-import React from 'react';
-import Navbar from '@/components/layout/Navbar';
-import Hero from '@/components/home/Hero';
-import Features from '@/components/home/Features';
-import About from '@/components/home/About';
-import Footer from '@/components/layout/Footer';
+import React from "react";
+import Navbar from "@/components/layout/Navbar";
+import Hero from "@/components/home/Hero";
+import Features from "@/components/home/Features";
+import CaraKerja from "@/components/home/CaraKerja";
+import About from "@/components/home/About";
+import Footer from "@/components/layout/Footer";
 
 export default function LandingPage() {
   return (
     <div style={styles.pageWrapper}>
-      {/* 1. Navigation Bar */}
+      {/* Navigation */}
       <Navbar />
-      
-      {/* 2. Main Content Area */}
+
+      {/* Main Content */}
       <main style={styles.mainContent}>
-        {/* Section 1: Beranda (Hero) */}
+        {/* Hero */}
         <Hero />
-        
-        {/* Section 2: Fitur Unggulan (Features) & Statistik */}
+
+        {/* Fitur */}
         <Features />
-        
-        {/* Section 3: Mengapa TongCi (About) & Poin Keunggulan */}
+
+        {/* Cara Kerja */}
+        <CaraKerja />
+
+        {/* Mengapa Memilih TongCi */}
         <About />
       </main>
-      
-      {/* 3. Footer */}
+
+      {/* Footer */}
       <Footer />
     </div>
   );
@@ -33,17 +37,19 @@ export default function LandingPage() {
 
 const styles = {
   pageWrapper: {
-    fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-    color: '#333333',
-    scrollBehavior: 'smooth',
-    backgroundColor: '#ffffff',
+    fontFamily:
+      'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+    color: "#333333",
+    backgroundColor: "#ffffff",
     margin: 0,
     padding: 0,
+    scrollBehavior: "smooth",
   },
+
   mainContent: {
-    display: 'block',
-    minHeight: '100vh',
-    width: '100%',
-    overflowX: 'hidden', // Mencegah terjadinya overflow horizontal yang merusak layout
-  }
+    display: "block",
+    width: "100%",
+    minHeight: "100vh",
+    overflowX: "hidden",
+  },
 };

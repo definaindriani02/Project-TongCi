@@ -1,117 +1,190 @@
-import React from 'react';
+"use client";
+
+import { motion } from "framer-motion";
+import "./hero.css";
+
+const fadeUp = {
+  hidden: {
+    opacity: 0,
+    y: 50,
+  },
+  show: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      delay,
+      ease: "easeOut",
+    },
+  }),
+};
+
+const floating = {
+  animate: {
+    y: [0, -12, 0],
+    transition: {
+      duration: 4,
+      repeat: Infinity,
+      ease: "easeInOut",
+    },
+  },
+};
 
 export default function Hero() {
   return (
-    <section id="beranda" style={styles.section}>
-      <div style={styles.container}>
-        
-        {/* Sisi Kiri: Teks & Penjelasan */}
-        <div style={styles.heroText}>
-          <div style={styles.badge}>
-            <span style={styles.badgeDot}></span> Platform Pengelolaan Sampah Berbasis AI
-          </div>
-          
-          <h1 style={styles.title}>
-            Buang Dengan Cinta,<br />
-            <span style={styles.textGreen}>Kelola Dengan Cerdas</span>
-          </h1>
+    <section id="beranda" className="hero">
+      {/* Background Blur */}
+      <div className="hero-bg hero-bg-1"></div>
+      <div className="hero-bg hero-bg-2"></div>
 
-          <p style={styles.description}>
-            Belajar memilih, mengelola, dan mendaur ulang sampah dengan bantuan teknologi AI untuk menciptakan lingkungan yang lebih bersih dan masa depan yang lebih hijau.
-          </p>
-          
-          <div style={styles.actions}>
-            <a href="/register" style={styles.btnPrimary}>Mulai Sekarang →</a>
-            <a href="#edukasi" style={styles.btnSecondary}>Pelajari Lebih Lanjut</a>
-          </div>
-          
-          <div style={styles.proof}>
-            <div style={styles.avatarGroup}>
-              {['A', 'B', 'C', 'D'].map((char, i) => (
-                <span key={i} style={{ ...styles.avatar, backgroundColor: i % 2 === 0 ? '#8BC34A' : '#FF6FA7' }}>{char}</span>
-              ))}
-            </div>
-            <p style={{ margin: 0, fontSize: '14px', color: '#555' }}>
-              Bergabung bersama <strong style={{ color: '#4CAF50' }}>50.000+</strong> pengguna aktif
-            </p>
-          </div>
+      <div className="hero-container">
+        {/* ================= LEFT ================= */}
+
+        <div className="hero-content">
+          <motion.div
+            className="hero-badge"
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={0}
+            whileHover={{
+              scale: 1.05,
+            }}
+          >
+            <span className="badge-dot"></span>
+            <span>Platform Pengelolaan Sampah Berbasis AI</span>
+          </motion.div>
+
+          <motion.h1
+            className="hero-title"
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={0.15}
+          >
+            Buang Dengan Cinta,
+            <br />
+            <span>Kelola Dengan Cerdas</span>
+          </motion.h1>
+
+          <motion.p
+            className="hero-description"
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={0.3}
+          >
+            Belajar memilah, mengelola, dan mendaur ulang sampah dengan bantuan
+            teknologi AI untuk menciptakan lingkungan yang lebih bersih dan masa
+            depan yang lebih hijau.
+          </motion.p>
+
+          <motion.div
+            className="hero-buttons"
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={0.45}
+          >
+            <a href="/register" className="btn-primary">
+              Mulai Sekarang
+              <span className="arrow">→</span>
+            </a>
+
+            <a href="#fitur" className="btn-secondary">
+              Pelajari Lebih Lanjut
+            </a>
+          </motion.div>
+
+          {/* Trust */}
+          <motion.div
+            className="hero-trust"
+            variants={fadeUp}
+            initial="hidden"
+            animate="show"
+            custom={0.6}
+          >
+            <span>🤖 AI Scan</span>
+            <span>♻ Edukasi Sampah</span>
+            <span>🌱 Ramah Lingkungan</span>
+          </motion.div>
         </div>
 
-        {/* Sisi Kanan: Grid 4 Gambar (Aman dari Eror Next.js) */}
-        <div style={styles.heroMedia}>
-          <div style={styles.gridImages}>
-            <div style={{ ...styles.imageWrapper, backgroundColor: '#E2F0D9' }}>
-              <img src="/assets/images/hero-1.png" alt="Tempat sampah kompos" style={styles.imageItem} />
-            </div>
-            <div style={{ ...styles.imageWrapper, backgroundColor: '#FFE5ED' }}>
-              <img src="/assets/images/hero-2.png" alt="Barisan tempat sampah umum" style={styles.imageItem} />
-            </div>
-            <div style={{ ...styles.imageWrapper, backgroundColor: '#E3F2FD' }}>
-              <img src="/assets/images/hero-3.png" alt="Tumpukan botol plastik pilahan" style={styles.imageItem} />
-            </div>
-            <div style={{ ...styles.imageWrapper, backgroundColor: '#FFF3E0' }}>
-              <img src="/assets/images/hero-4.png" alt="Tempat sampah pilah luar ruangan" style={styles.imageItem} />
-            </div>
-          </div>
-        </div>
+        {/* ================= RIGHT ================= */}
 
+        <div className="hero-images">
+          <motion.div
+            className="image-card"
+            variants={floating}
+            animate="animate"
+            whileHover={{
+              scale: 1.05,
+              rotate: -2,
+            }}
+          >
+            <img
+              src="/asset/images/hero-1.jpeg"
+              alt="Hero 1"
+            />
+          </motion.div>
+
+          <motion.div
+            className="image-card"
+            variants={floating}
+            animate="animate"
+            transition={{
+              delay: 0.5,
+            }}
+            whileHover={{
+              scale: 1.05,
+              rotate: 2,
+            }}
+          >
+            <img
+              src="/asset/images/hero-2.jpeg"
+              alt="Hero 2"
+            />
+          </motion.div>
+
+          <motion.div
+            className="image-card"
+            variants={floating}
+            animate="animate"
+            transition={{
+              delay: 1,
+            }}
+            whileHover={{
+              scale: 1.05,
+              rotate: -2,
+            }}
+          >
+            <img
+              src="/asset/images/hero-3.jpeg"
+              alt="Hero 3"
+            />
+          </motion.div>
+
+          <motion.div
+            className="image-card"
+            variants={floating}
+            animate="animate"
+            transition={{
+              delay: 1.5,
+            }}
+            whileHover={{
+              scale: 1.05,
+              rotate: 2,
+            }}
+          >
+            <img
+              src="/asset/images/hero-4.jpeg"
+              alt="Hero 4"
+            />
+          </motion.div>
+
+        </div>
       </div>
     </section>
   );
+  
 }
-
-const styles = {
-  section: { 
-    padding: '80px 0', 
-    backgroundColor: '#E8F5E9', 
-    backgroundImage: 'linear-gradient(135deg, #E8F5E9 0%, #FFFFFF 100%)', 
-  },
-  container: { 
-    maxWidth: '1200px', 
-    margin: '0 auto', 
-    padding: '0 20px', 
-    display: 'grid', 
-    gridTemplateColumns: '1.1fr 0.9fr', 
-    gap: '40px', 
-    alignItems: 'center' 
-  },
-  heroText: { display: 'flex', flexDirection: 'column', gap: '24px' },
-  badge: { 
-    display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#FFFFFF', 
-    color: '#4CAF50', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', 
-    fontWeight: '600', width: 'fit-content', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-  },
-  badgeDot: { width: '8px', height: '8px', backgroundColor: '#4CAF50', borderRadius: '50%' },
-  title: { fontSize: '52px', fontWeight: '800', color: '#1B3A24', lineHeight: '1.2', margin: 0, letterSpacing: '-1px' },
-  textGreen: { color: '#4CAF50' },
-  description: { fontSize: '16px', color: '#4A5568', lineHeight: '1.7', margin: 0, maxWidth: '520px' },
-  actions: { display: 'flex', gap: '15px', alignItems: 'center' },
-  btnPrimary: { 
-    textDecoration: 'none', padding: '14px 28px', borderRadius: '25px', backgroundColor: '#4CAF50', 
-    color: '#fff', fontWeight: '600', fontSize: '15px', boxShadow: '0 4px 14px rgba(76, 175, 80, 0.3)'
-  },
-  btnSecondary: { 
-    textDecoration: 'none', padding: '14px 28px', borderRadius: '25px', backgroundColor: '#FFFFFF', 
-    color: '#4CAF50', fontWeight: '600', fontSize: '15px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-  },
-  proof: { display: 'flex', alignItems: 'center', gap: '12px', marginTop: '15px' },
-  avatarGroup: { display: 'flex', paddingLeft: '8px' },
-  avatar: { 
-    width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', 
-    justifyContent: 'center', color: '#fff', fontSize: '12px', fontWeight: 'bold', border: '2px solid #fff', marginLeft: '-8px' 
-  },
-  heroMedia: { width: '100%' },
-  gridImages: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' },
-  imageWrapper: {
-    width: '100%',
-    height: '180px',
-    borderRadius: '24px',
-    overflow: 'hidden',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
-  },
-  imageItem: { 
-    width: '100%',
-    height: '100%', 
-    objectFit: 'cover',
-  }
-};

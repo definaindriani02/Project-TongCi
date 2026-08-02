@@ -1,0 +1,176 @@
+.features{
+    padding:100px 0;
+    background:#fff;
+}
+
+.features-container{
+    max-width:1280px;
+    margin:auto;
+    padding:0 40px;
+}
+
+.section-tag{
+    display:block;
+    text-align:center;
+
+    color:#22C55E;
+
+    font-size:10px;
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+    margin-bottom:18px;
+}
+
+.features h2{
+
+    text-align:center;
+
+    font-size:48px;
+
+    color:#16223C;
+
+    font-weight:800;
+
+    margin-bottom:16px;
+}
+
+.section-desc{
+
+    text-align:center;
+
+    color:#6B7280;
+
+    font-size:18px;
+
+    max-width:650px;
+
+    margin:0 auto 70px;
+}
+
+.feature-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:26px;
+}
+
+.feature-card{
+    padding:40px;
+    border-radius:24px;
+    min-height:270px;
+
+    display:flex;
+    flex-direction:column;
+
+    transition:.35s;
+
+    border:1px solid rgba(0,0,0,.05);
+
+    box-shadow:0 10px 28px rgba(0,0,0,.05);
+}
+.feature-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 18px 40px rgba(0,0,0,.08);
+}
+
+.green{
+
+    background:#EFFDF3;
+}
+
+.blue{
+
+    background:#EEF7FF;
+}
+
+.pink{
+
+    background:#FFF2F8;
+}
+
+.icon-box{
+    width:64px;
+    height:64px;
+
+    border-radius:18px;
+
+    background:#fff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    margin-bottom:26px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+}
+
+.blue .icon-box{
+
+    color:#3B82F6;
+}
+
+.pink .icon-box{
+
+    color:#EC4899;
+}
+
+.feature-card h3{
+
+    font-size:30px;
+
+    color:#16223C;
+
+    margin-bottom:16px;
+
+    font-weight:700;
+}
+
+.feature-card p{
+
+    color:#6B7280;
+
+    line-height:1.8;
+
+    font-size:16px;
+
+    margin-bottom:28px;
+}
+
+.feature-card a{
+
+    text-decoration:none;
+
+    color:#16A34A;
+
+    font-weight:700;
+
+    transition:.3s;
+}
+
+.feature-card a:hover{
+
+    letter-spacing:.5px;
+}
+
+@media(max-width:992px){
+
+.feature-grid{
+
+grid-template-columns:1fr;
+
+}
+
+.features h2{
+
+font-size:40px;
+
+}
+}
