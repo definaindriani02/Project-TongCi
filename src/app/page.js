@@ -1,11 +1,11 @@
 "use client";
 
 import React from 'react';
-import Navbar from '@/components/layout/Navbar';
-import Hero from '@/components/home/Hero';
-import Features from '@/components/home/Features';
-import About from '@/components/home/About';
-import Footer from '@/components/layout/Footer';
+import Navbar from '@/components/layout/navbar';
+import Hero from '@/components/home/hero';
+import Features from '@/components/home/features';
+import About from '@/components/home/about';
+import Footer from '@/components/layout/footer';
 
 export default function LandingPage() {
   return (
