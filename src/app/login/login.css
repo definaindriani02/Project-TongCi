@@ -1275,3 +1275,9 @@ align-items:flex-start;
 }
 
 }
+.login-error {
+  color: #e53935;
+  font-size: 14px;
+  margin-bottom: 15px;
+  font-weight: 500;
+}

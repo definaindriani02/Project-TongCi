@@ -1,0 +1,331 @@
+/* ==========================================
+   FLOATING AI
+========================================== */
+
+.asisten-ai-button {
+  position: fixed;
+
+  right: 25px;
+  bottom: 25px;
+
+  z-index: 100;
+
+  width: 62px;
+  height: 62px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #edf8e8
+    );
+
+  box-shadow:
+    0 12px 30px rgba(55, 100, 60, 0.16);
+
+  cursor: pointer;
+}
+
+
+/* ==========================================
+   MASKOT CICI
+========================================== */
+
+.cici-placeholder {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e9f7e2;
+
+  overflow: hidden;
+}
+
+.cici-placeholder span {
+  font-size: 28px;
+}
+
+
+/*
+  NANTI KALAU SUDAH ADA MASKOT:
+
+  .cici-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+*/
+
+
+/* ==========================================
+   SPARKLE
+========================================== */
+
+.ai-sparkle {
+  position: absolute;
+
+  top: 1px;
+  right: 1px;
+
+  width: 21px;
+  height: 21px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ff6fa7;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 4px 10px rgba(80, 100, 80, 0.1);
+}
+
+
+/* ==========================================
+   POPUP
+========================================== */
+
+.asisten-ai-popup {
+  position: fixed;
+
+  right: 25px;
+  bottom: 98px;
+
+  z-index: 99;
+
+  width: 280px;
+
+  padding: 14px;
+
+  border-radius: 19px;
+
+  background: #ffffff;
+
+  border: 1px solid #e4ece1;
+
+  box-shadow:
+    0 15px 45px rgba(45, 80, 50, 0.14);
+}
+
+
+/* ==========================================
+   POPUP HEADER
+========================================== */
+
+.ai-popup-header {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+.ai-popup-avatar {
+  width: 35px;
+  height: 35px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: #edf8e7;
+
+  font-size: 19px;
+}
+
+
+.ai-popup-header > div:nth-child(2) {
+  display: flex;
+
+  flex-direction: column;
+
+  flex: 1;
+}
+
+
+.ai-popup-header strong {
+  color: #304438;
+
+  font-size: 10px;
+
+  font-weight: 900;
+}
+
+
+.ai-popup-header span {
+  margin-top: 2px;
+
+  color: #9aa49d;
+
+  font-size: 7px;
+}
+
+
+/* CLOSE */
+
+.ai-close-button {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  border-radius: 8px;
+
+  color: #9aa49e;
+
+  background: #f5f7f4;
+
+  cursor: pointer;
+}
+
+
+/* ==========================================
+   MESSAGE
+========================================== */
+
+.ai-popup-message {
+  display: flex;
+
+  gap: 8px;
+
+  margin-top: 14px;
+
+  padding: 10px;
+
+  border-radius: 12px;
+
+  background: #f7faf5;
+}
+
+
+.ai-message-icon {
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 7px;
+
+  color: #4caf50;
+
+  background: #e9f6e2;
+}
+
+
+.ai-popup-message p {
+  margin: 0;
+
+  color: #66746b;
+
+  font-size: 8px;
+
+  line-height: 1.55;
+}
+
+
+/* ==========================================
+   ACTION
+========================================== */
+
+.ai-popup-action {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-top: 10px;
+
+  padding: 9px 11px;
+
+  border-radius: 10px;
+
+  color: #ffffff;
+
+  background: #4caf50;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  text-decoration: none;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.ai-popup-action:hover {
+  background: #429746;
+
+  transform: translateX(2px);
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 600px) {
+
+  .asisten-ai-button {
+    right: 17px;
+    bottom: 17px;
+
+    width: 56px;
+    height: 56px;
+  }
+
+
+  .cici-placeholder {
+    width: 43px;
+    height: 43px;
+  }
+
+
+  .asisten-ai-popup {
+    right: 17px;
+    bottom: 84px;
+
+    width: calc(100vw - 34px);
+
+    max-width: 280px;
+  }
+
+}

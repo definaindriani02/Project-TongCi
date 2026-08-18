@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 import {
   Mail,
   Lock,
@@ -15,24 +16,34 @@ import {
 
 export default function Login() {
   const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
+    setLoading(true);
+    setErrorMessage("");
 
-  setTimeout(() => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     setLoading(false);
 
+    if (error) {
+      setErrorMessage("Email atau password salah.");
+      return;
+    }
+
     router.push("/dashboard");
-
-  },1800);
-
-};
+  };
 
   return (
     <main className="login-page">
@@ -130,6 +141,8 @@ export default function Login() {
               <input
                 type="email"
                 placeholder="Masukkan Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
 
@@ -144,6 +157,8 @@ export default function Login() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Masukkan Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
 
@@ -161,6 +176,12 @@ export default function Login() {
               </button>
 
             </div>
+
+            {errorMessage && (
+              <div className="login-error">
+                {errorMessage}
+              </div>
+            )}
 
             <div className="login-option">
 
@@ -187,6 +208,7 @@ export default function Login() {
               }}
               type="submit"
               className="login-btn"
+              disabled={loading}
             >
 
               {loading

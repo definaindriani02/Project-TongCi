@@ -8,6 +8,7 @@ import CaraKerja from "@/components/home/CaraKerja";
 import About from "@/components/home/About";
 import Footer from "@/components/layout/Footer";
 
+
 export default function LandingPage() {
   return (
     <div style={styles.pageWrapper}>

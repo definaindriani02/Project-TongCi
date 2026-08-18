@@ -1,0 +1,186 @@
+.tips3r-section {
+  width: 100%;
+  padding: 19px;
+
+  border-radius: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #e8eee6;
+
+  box-shadow:
+    0 7px 25px rgba(55, 100, 60, 0.045);
+}
+
+
+.tips3r-header {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 14px;
+}
+
+
+.tips3r-label {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #9aa69e;
+
+  font-size: 7px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+}
+
+
+.tips3r-header h2 {
+  margin: 0;
+
+  color: #263a2d;
+
+  font-size: 17px;
+
+  font-weight: 900;
+
+  letter-spacing: -0.03em;
+}
+
+
+.tips3r-header p {
+  margin: 5px 0 0;
+
+  color: #909b94;
+
+  font-size: 8px;
+}
+
+
+.tips3r-lightbulb {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #e3a23d;
+
+  background: #fff8e8;
+
+  border: 1px solid #f3e8ca;
+}
+
+
+/* LIST */
+
+.tips3r-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+
+.tips3r-card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  min-height: 56px;
+
+  padding: 9px;
+
+  border-radius: 13px;
+
+  background: #f9fcf7;
+
+  border: 1px solid #edf3ea;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+.tips3r-card:hover {
+  background: #f2faee;
+
+  border-color: #dfeeda;
+}
+
+
+.tips3r-icon {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  color: #4caf50;
+
+  background: #eaf6e3;
+}
+
+
+.tips3r-content {
+  min-width: 0;
+
+  flex: 1;
+}
+
+
+.tips3r-content h3 {
+  margin: 0;
+
+  color: #35463b;
+
+  font-size: 9px;
+
+  font-weight: 900;
+}
+
+
+.tips3r-content p {
+  margin: 3px 0 0;
+
+  color: #929d96;
+
+  font-size: 7px;
+
+  line-height: 1.4;
+}
+
+
+.tips3r-arrow {
+  flex-shrink: 0;
+
+  color: #b1bdb4;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.tips3r-card:hover .tips3r-arrow {
+  color: #4caf50;
+
+  transform: translateX(3px);
+}

@@ -3,7 +3,9 @@
 import "./register.css";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { supabase } from "@/lib/supabase";
 import {
   User,
   Mail,
@@ -15,6 +17,8 @@ import {
 } from "lucide-react";
 
 export default function Register() {
+  const router = useRouter();
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,7 +48,7 @@ export default function Register() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!passwordMatch) {
@@ -54,10 +58,26 @@ export default function Register() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      alert("Register berhasil!");
-    }, 2000);
+    const { error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: {
+          full_name: form.name,
+        },
+      },
+    });
+
+    setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Registrasi berhasil! Silakan login.");
+
+    router.push("/login");
   };
 
   return (
@@ -98,6 +118,7 @@ export default function Register() {
               type="text"
               placeholder="Nama Lengkap"
               name="name"
+              value={form.name}
               onChange={handleChange}
               required
             />
@@ -109,6 +130,7 @@ export default function Register() {
               type="email"
               placeholder="Email"
               name="email"
+              value={form.email}
               onChange={handleChange}
               required
             />
@@ -120,6 +142,7 @@ export default function Register() {
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               name="password"
+              value={form.password}
               onChange={handleChange}
               required
             />
@@ -144,6 +167,7 @@ export default function Register() {
               type={showConfirm ? "text" : "password"}
               placeholder="Konfirmasi Password"
               name="confirm"
+              value={form.confirm}
               onChange={handleChange}
               required
             />
