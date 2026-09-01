@@ -8,7 +8,7 @@ export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300" suppressHydrationWarning>
+    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans transition-colors duration-300" suppressHydrationWarning>
       {/* Collapsible Sidebar */}
       <Sidebar sidebarOpen={sidebarOpen} />
 

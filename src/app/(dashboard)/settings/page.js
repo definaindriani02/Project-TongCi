@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Bell, Eye, LockKeyhole, Monitor, Save, Trash2, UserRound } from "lucide-react";
 
 const menu = [
@@ -18,7 +18,7 @@ function Toggle({ enabled, onChange }) {
       onClick={onChange}
       aria-pressed={enabled}
       className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
-        enabled ? "bg-emerald-500" : "bg-slate-200 dark:bg-slate-700"
+        enabled ? "bg-emerald-500" : "bg-slate-200"
       }`}
     >
       <span
@@ -33,12 +33,12 @@ function Toggle({ enabled, onChange }) {
 function Field({ label, type = "text", value, placeholder }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[11px] font-bold text-slate-600 dark:text-slate-300">{label}</span>
+      <span className="mb-1.5 block text-[11px] font-bold text-slate-600">{label}</span>
       <input
         type={type}
         defaultValue={value}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-emerald-950"
+        className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50"
       />
     </label>
   );
@@ -46,10 +46,10 @@ function Field({ label, type = "text", value, placeholder }) {
 
 function Section({ id, title, description, children }) {
   return (
-    <section id={id} className="scroll-mt-6 border-b border-slate-100 pb-7 last:border-0 last:pb-0 dark:border-slate-800">
+    <section id={id} className="scroll-mt-6 border-b border-slate-100 pb-7 last:border-0 last:pb-0">
       <div className="mb-5">
-        <h2 className="text-sm font-extrabold text-slate-800 dark:text-slate-100">{title}</h2>
-        <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-400">{description}</p>
+        <h2 className="text-sm font-extrabold text-slate-800">{title}</h2>
+        <p className="mt-1 text-[11px] text-slate-400">{description}</p>
       </div>
       {children}
     </section>
@@ -63,20 +63,10 @@ export default function SettingsPage() {
     points: true,
     promo: false,
     update: true,
-    dark: false,
     public: true,
     ranking: true,
     history: false,
   });
-
-  // Efek untuk mengaktifkan/mematikan Dark Mode di tingkat HTML
-  useEffect(() => {
-    if (switches.dark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [switches.dark]);
 
   const toggle = (key) => setSwitches((current) => ({ ...current, [key]: !current[key] }));
 
@@ -88,10 +78,10 @@ export default function SettingsPage() {
   const renderOptions = (items) => (
     <div className="space-y-3">
       {items.map(([label, text, key]) => (
-        <div key={key} className="flex items-center justify-between gap-5 rounded-2xl bg-slate-50/80 px-4 py-3 dark:bg-slate-800/60">
+        <div key={key} className="flex items-center justify-between gap-5 rounded-2xl bg-slate-50/80 px-4 py-3">
           <div>
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{label}</p>
-            <p className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-400">{text}</p>
+            <p className="text-xs font-bold text-slate-700">{label}</p>
+            <p className="mt-0.5 text-[10px] text-slate-400">{text}</p>
           </div>
           <Toggle enabled={switches[key]} onChange={() => toggle(key)} />
         </div>
@@ -102,12 +92,12 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 pb-4 transition-colors duration-300">
       <section>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 md:text-3xl">Pengaturan</h1>
-        <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Kelola preferensi akun dan aplikasi.</p>
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 md:text-3xl">Pengaturan</h1>
+        <p className="mt-1 text-xs font-medium text-slate-500">Kelola preferensi akun dan aplikasi.</p>
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[210px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-3xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <aside className="h-fit rounded-3xl border border-slate-100 bg-white p-3 shadow-sm">
           <nav className="flex gap-1 overflow-x-auto lg:flex-col">
             {menu.map(([item, Icon]) => (
               <button
@@ -117,7 +107,7 @@ export default function SettingsPage() {
                 className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-bold transition-all ${
                   active === item
                     ? "bg-emerald-500 text-white shadow-sm"
-                    : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-emerald-400"
+                    : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-600"
                 }`}
               >
                 <Icon size={15} />
@@ -127,7 +117,7 @@ export default function SettingsPage() {
           </nav>
         </aside>
 
-        <div className="space-y-7 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-7">
+        <div className="space-y-7 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm md:p-7">
           <Section id="akun" title="Akun" description="Perbarui informasi dasar untuk akun TongCi Anda.">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Nama" value="Nadia Lestari" />
@@ -136,7 +126,7 @@ export default function SettingsPage() {
             </div>
             <button
               type="button"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm shadow-emerald-100 transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:scale-95 dark:shadow-none"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm shadow-emerald-100 transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:scale-95"
             >
               <Save size={14} /> Simpan Perubahan
             </button>
@@ -150,7 +140,7 @@ export default function SettingsPage() {
             </div>
             <button
               type="button"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
             >
               <LockKeyhole size={14} /> Ubah Password
             </button>
@@ -167,22 +157,10 @@ export default function SettingsPage() {
 
           <Section id="tampilan" title="Tampilan" description="Sesuaikan pengalaman visual aplikasi.">
             <div className="space-y-4">
-              {renderOptions([["Dark Mode", "Gunakan tampilan gelap untuk aplikasi.", "dark"]])}
               <div className="grid gap-4 sm:grid-cols-2">
                 <label>
-                  <span className="mb-1.5 block text-[11px] font-bold text-slate-600 dark:text-slate-300">Mode Tampilan</span>
-                  <select
-                    value={switches.dark ? "Dark Mode" : "Light Mode"}
-                    onChange={(e) => setSwitches((prev) => ({ ...prev, dark: e.target.value === "Dark Mode" }))}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 outline-none focus:border-emerald-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-                  >
-                    <option value="Light Mode">Light Mode</option>
-                    <option value="Dark Mode">Dark Mode</option>
-                  </select>
-                </label>
-                <label>
-                  <span className="mb-1.5 block text-[11px] font-bold text-slate-600 dark:text-slate-300">Bahasa & Ukuran Font</span>
-                  <select className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 outline-none focus:border-emerald-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  <span className="mb-1.5 block text-[11px] font-bold text-slate-600">Bahasa & Ukuran Font</span>
+                  <select className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 outline-none focus:border-emerald-400">
                     <option>Bahasa Indonesia · Sedang</option>
                     <option>English · Medium</option>
                   </select>
@@ -199,11 +177,11 @@ export default function SettingsPage() {
             ])}
           </Section>
 
-          <section className="rounded-2xl border border-pink-100 bg-pink-50 p-4 dark:border-pink-950/50 dark:bg-pink-950/20">
+          <section className="rounded-2xl border border-pink-100 bg-pink-50 p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-xs font-extrabold text-pink-700 dark:text-pink-400">Zona Berbahaya</h2>
-                <p className="mt-1 text-[10px] leading-relaxed text-pink-600 dark:text-pink-300">
+                <h2 className="text-xs font-extrabold text-pink-700">Zona Berbahaya</h2>
+                <p className="mt-1 text-[10px] leading-relaxed text-pink-600">
                   Menghapus akun akan menghilangkan data dan riwayat secara permanen.
                 </p>
               </div>
