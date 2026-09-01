@@ -1,0 +1,369 @@
+/* =====================================================
+   STATISTIK DASHBOARD
+===================================================== */
+
+.dashboard-statistik {
+  width: 100%;
+}
+
+
+/* =====================================================
+   HEADING
+===================================================== */
+
+.statistik-heading {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 18px;
+}
+
+
+.statistik-label {
+  display: inline-block;
+
+  margin-bottom: 6px;
+
+  color: #8ca092;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+}
+
+
+.statistik-heading h2 {
+  margin: 0;
+
+  color: #263a2d;
+
+  font-size: 21px;
+
+  line-height: 1.2;
+
+  font-weight: 900;
+
+  letter-spacing: -0.03em;
+}
+
+
+.statistik-heading p {
+  margin: 7px 0 0;
+
+  color: #89958d;
+
+  font-size: 10px;
+
+  line-height: 1.5;
+
+  font-weight: 500;
+}
+
+
+/* =====================================================
+   GROWTH BADGE
+===================================================== */
+
+.statistik-growth {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 8px 12px;
+
+  border-radius: 999px;
+
+  background: #f1f9e9;
+
+  border: 1px solid #e1efd5;
+
+  color: #4d944c;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   GRID
+===================================================== */
+
+.statistik-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 15px;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.statistik-card {
+  position: relative;
+
+  min-height: 148px;
+
+  padding: 18px;
+
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #e8eee6;
+
+  box-shadow:
+    0 7px 25px rgba(55, 100, 60, 0.055);
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+
+.statistik-card:hover {
+  border-color: #d7e8d0;
+
+  box-shadow:
+    0 14px 35px rgba(55, 100, 60, 0.09);
+}
+
+
+/* =====================================================
+   CARD TOP
+===================================================== */
+
+.statistik-card-top {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+}
+
+
+/* =====================================================
+   ICON
+===================================================== */
+
+.statistik-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+}
+
+
+/* POINT */
+
+.statistik-points .statistik-icon {
+  color: #d99b32;
+
+  background: #fff8e8;
+
+  border: 1px solid #f5e7bd;
+}
+
+
+/* SCAN */
+
+.statistik-scan .statistik-icon {
+  color: #4caf50;
+
+  background: #eef9e8;
+
+  border: 1px solid #dcefd3;
+}
+
+
+/* RECYCLE */
+
+.statistik-recycle .statistik-icon {
+  color: #53a889;
+
+  background: #eaf8f2;
+
+  border: 1px solid #d8eee5;
+}
+
+
+/* =====================================================
+   ARROW
+===================================================== */
+
+.statistik-arrow {
+  width: 27px;
+  height: 27px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #a2ada5;
+
+  background: #f7faf6;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.statistik-card:hover .statistik-arrow {
+  color: #4caf50;
+
+  transform: translate(2px, -2px);
+}
+
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.statistik-content {
+  margin-top: 13px;
+}
+
+
+.statistik-title {
+  margin: 0;
+
+  color: #8a968e;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+
+.statistik-value {
+  display: flex;
+
+  align-items: baseline;
+
+  gap: 5px;
+
+  margin-top: 4px;
+}
+
+
+.statistik-value span {
+  color: #263a2d;
+
+  font-size: 25px;
+
+  line-height: 1;
+
+  font-weight: 900;
+
+  letter-spacing: -0.05em;
+}
+
+
+.statistik-value small {
+  color: #819087;
+
+  font-size: 9px;
+
+  font-weight: 800;
+}
+
+
+.statistik-description {
+  max-width: 180px;
+
+  margin: 6px 0 0;
+
+  color: #9aa49e;
+
+  font-size: 8px;
+
+  line-height: 1.4;
+
+  font-weight: 500;
+}
+
+
+/* =====================================================
+   DECORATION
+===================================================== */
+
+.statistik-decoration {
+  position: absolute;
+
+  right: -14px;
+  bottom: -23px;
+
+  color: #4caf50;
+
+  font-size: 80px;
+
+  line-height: 1;
+
+  opacity: 0.045;
+
+  transform: rotate(-12deg);
+
+  pointer-events: none;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 850px) {
+
+  .statistik-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (max-width: 560px) {
+
+  .statistik-heading {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .statistik-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .statistik-card {
+    min-height: 135px;
+  }
+
+}

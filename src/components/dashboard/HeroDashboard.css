@@ -1,0 +1,784 @@
+/* =====================================================
+   TONCCI HERO DASHBOARD
+===================================================== */
+
+.hero-dashboard {
+  position: relative;
+
+  min-height: 285px;
+
+  overflow: hidden;
+
+  margin-bottom: 24px;
+
+  border:
+    1px solid #e4eedf;
+
+  border-radius: 26px;
+
+  background:
+    linear-gradient(
+      115deg,
+      #f1fae8 0%,
+      #f8fbed 45%,
+      #fff6fa 100%
+    );
+
+  box-shadow:
+    0 14px 40px rgba(53, 100, 58, 0.055);
+}
+
+
+/* =====================================================
+   BACKGROUND GLOW
+===================================================== */
+
+.hero-dashboard-glow {
+  position: absolute;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(3px);
+}
+
+
+.hero-glow-one {
+  width: 250px;
+  height: 250px;
+
+  top: -145px;
+  right: 90px;
+
+  background:
+    rgba(139, 195, 74, 0.13);
+}
+
+
+.hero-glow-two {
+  width: 210px;
+  height: 210px;
+
+  right: -80px;
+  bottom: -120px;
+
+  background:
+    rgba(255, 111, 167, 0.09);
+}
+
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.hero-dashboard-content {
+  position: relative;
+
+  z-index: 2;
+
+  min-height: 285px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 30px;
+
+  padding:
+    35px
+    40px;
+}
+
+
+/* =====================================================
+   TEXT
+===================================================== */
+
+.hero-dashboard-text {
+  position: relative;
+
+  z-index: 5;
+
+  max-width: 610px;
+}
+
+
+.hero-dashboard-badge {
+  width: fit-content;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding:
+    6px
+    10px
+    6px
+    6px;
+
+  border:
+    1px solid #dcebd3;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.72);
+
+  color: #69806d;
+
+  font-size: 8px;
+
+  font-weight: 800;
+
+  box-shadow:
+    0 4px 12px rgba(60, 100, 60, 0.035);
+}
+
+
+.hero-badge-icon {
+  width: 21px;
+  height: 21px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #4caf50,
+      #8bc34a
+    );
+}
+
+
+.hero-dashboard-text h2 {
+  margin:
+    14px
+    0
+    9px;
+
+  color: #284332;
+
+  font-size: clamp(
+    25px,
+    3vw,
+    36px
+  );
+
+  line-height: 1.08;
+
+  letter-spacing: -0.055em;
+
+  font-weight: 900;
+}
+
+
+.hero-dashboard-text h2 span {
+  color: #4caf50;
+
+  position: relative;
+}
+
+
+.hero-dashboard-text h2 span::after {
+  content: "";
+
+  position: absolute;
+
+  left: 2px;
+  right: 2px;
+  bottom: -4px;
+
+  height: 4px;
+
+  border-radius: 999px;
+
+  background:
+    #cce7a7;
+
+  opacity: 0.65;
+}
+
+
+.hero-dashboard-text p {
+  max-width: 490px;
+
+  margin: 0;
+
+  color: #7c8b81;
+
+  font-size: 10px;
+
+  line-height: 1.7;
+
+  font-weight: 600;
+}
+
+
+/* =====================================================
+   ACTION
+===================================================== */
+
+.hero-dashboard-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+
+  margin-top: 21px;
+}
+
+
+.hero-scan-button {
+  min-height: 42px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding:
+    0
+    13px
+    0
+    7px;
+
+  border-radius: 13px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #4caf50,
+      #66b94d
+    );
+
+  text-decoration: none;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  box-shadow:
+    0 8px 20px rgba(76, 175, 80, 0.20);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.hero-scan-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 11px 24px rgba(76, 175, 80, 0.26);
+}
+
+
+.hero-scan-icon {
+  width: 29px;
+  height: 29px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.17);
+}
+
+
+.hero-arrow {
+  margin-left: 4px;
+
+  transition:
+    transform 0.2s ease;
+}
+
+
+.hero-scan-button:hover .hero-arrow {
+  transform: translateX(3px);
+}
+
+
+.hero-mini-info {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  color: #829087;
+
+  font-size: 8px;
+
+  font-weight: 700;
+}
+
+
+.hero-mini-icon {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  color: #5ca34e;
+
+  background:
+    rgba(255, 255, 255, 0.7);
+}
+
+
+/* =====================================================
+   CICI AREA
+===================================================== */
+
+.hero-cici-area {
+  position: relative;
+
+  width: 310px;
+  height: 245px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+
+/* =====================================================
+   ORBIT
+===================================================== */
+
+.cici-orbit {
+  position: absolute;
+
+  border-radius: 50%;
+
+  border: 1px dashed rgba(
+    76,
+    175,
+    80,
+    0.18
+  );
+}
+
+
+.orbit-one {
+  width: 205px;
+  height: 205px;
+}
+
+
+.orbit-two {
+  width: 155px;
+  height: 155px;
+
+  border-color:
+    rgba(
+      255,
+      111,
+      167,
+      0.14
+    );
+}
+
+
+/* =====================================================
+   CICI PLACEHOLDER
+===================================================== */
+
+.cici-placeholder {
+  position: relative;
+
+  z-index: 5;
+
+  width: 125px;
+  height: 145px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius:
+    55px
+    55px
+    42px
+    42px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #f0f8e9
+    );
+
+  border:
+    1px solid #dfead8;
+
+  box-shadow:
+    0 18px 35px rgba(
+      56,
+      105,
+      60,
+      0.11
+    );
+}
+
+
+.cici-placeholder-inner {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 3px;
+}
+
+
+.cici-placeholder-face {
+  font-size: 42px;
+
+  filter:
+    drop-shadow(
+      0 5px 5px
+      rgba(50, 100, 50, 0.08)
+    );
+}
+
+
+.cici-placeholder-text {
+  color: #4caf50;
+
+  font-size: 14px;
+
+  font-weight: 900;
+
+  letter-spacing: -0.03em;
+}
+
+
+/* =====================================================
+   SPEECH
+===================================================== */
+
+.cici-speech {
+  position: absolute;
+
+  z-index: 8;
+
+  top: 25px;
+  right: 24px;
+
+  padding:
+    8px
+    12px;
+
+  border:
+    1px solid #e4ecdf;
+
+  border-radius:
+    13px
+    13px
+    13px
+    4px;
+
+  color: #607366;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.92
+    );
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  box-shadow:
+    0 7px 18px rgba(
+      60,
+      100,
+      60,
+      0.06
+    );
+}
+
+
+.cici-speech::after {
+  content: "";
+
+  position: absolute;
+
+  left: 12px;
+  bottom: -5px;
+
+  width: 9px;
+  height: 9px;
+
+  background: #ffffff;
+
+  border-right:
+    1px solid #e4ecdf;
+
+  border-bottom:
+    1px solid #e4ecdf;
+
+  transform: rotate(45deg);
+}
+
+
+/* =====================================================
+   FLOATING DECORATIONS
+===================================================== */
+
+.hero-floating-leaf {
+  position: absolute;
+
+  z-index: 4;
+
+  font-size: 20px;
+
+  filter:
+    drop-shadow(
+      0 4px 5px
+      rgba(60, 100, 60, 0.08)
+    );
+}
+
+
+.leaf-one {
+  left: 25px;
+  top: 53px;
+}
+
+
+.leaf-two {
+  right: 37px;
+  bottom: 44px;
+
+  font-size: 17px;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1000px) {
+
+  .hero-dashboard-content {
+    padding:
+      30px;
+  }
+
+
+  .hero-cici-area {
+    width: 240px;
+  }
+
+
+  .cici-placeholder {
+    width: 110px;
+    height: 130px;
+  }
+
+
+  .orbit-one {
+    width: 180px;
+    height: 180px;
+  }
+
+
+  .orbit-two {
+    width: 140px;
+    height: 140px;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 768px) {
+
+  .hero-dashboard {
+    min-height: auto;
+
+    border-radius: 21px;
+  }
+
+
+  .hero-dashboard-content {
+    min-height: auto;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    padding:
+      27px
+      23px
+      10px;
+  }
+
+
+  .hero-dashboard-text {
+    max-width: 100%;
+  }
+
+
+  .hero-dashboard-text h2 {
+    font-size: 28px;
+  }
+
+
+  .hero-dashboard-text p {
+    font-size: 9px;
+  }
+
+
+  .hero-dashboard-actions {
+    margin-top: 17px;
+  }
+
+
+  .hero-cici-area {
+    width: 100%;
+
+    height: 190px;
+
+    margin-top: -2px;
+  }
+
+
+  .cici-placeholder {
+    width: 95px;
+    height: 112px;
+  }
+
+
+  .cici-placeholder-face {
+    font-size: 33px;
+  }
+
+
+  .cici-placeholder-text {
+    font-size: 11px;
+  }
+
+
+  .cici-speech {
+    top: 18px;
+    right: 22%;
+  }
+
+
+  .orbit-one {
+    width: 155px;
+    height: 155px;
+  }
+
+
+  .orbit-two {
+    width: 120px;
+    height: 120px;
+  }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 430px) {
+
+  .hero-dashboard-content {
+    padding:
+      24px
+      18px
+      5px;
+  }
+
+
+  .hero-dashboard-text h2 {
+    font-size: 25px;
+  }
+
+
+  .hero-dashboard-text p {
+    font-size: 8px;
+  }
+
+
+  .hero-dashboard-actions {
+    flex-wrap: wrap;
+
+    gap: 10px;
+  }
+
+
+  .hero-mini-info {
+    font-size: 7px;
+  }
+
+
+  .hero-cici-area {
+    height: 175px;
+  }
+
+
+  .cici-speech {
+    right: 17%;
+  }
+
+}
+
+
+/* =====================================================
+   REDUCE MOTION
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .hero-dashboard *,
+  .hero-dashboard::before,
+  .hero-dashboard::after {
+    animation: none !important;
+
+    transition: none !important;
+  }
+
+}

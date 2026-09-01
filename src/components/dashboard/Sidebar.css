@@ -1,0 +1,717 @@
+/* =====================================================
+   TONGCI SIDEBAR
+===================================================== */
+
+.sidebar {
+  position: fixed;
+
+  top: 16px;
+  left: 16px;
+  bottom: 16px;
+
+  width: 250px;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 24px 15px 15px;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  border: 1px solid #e5eee3;
+
+  border-radius: 25px;
+
+  box-shadow:
+    0 15px 45px rgba(47, 105, 54, 0.07);
+
+  z-index: 200;
+
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: #d8e8d3 transparent;
+
+  animation: sidebarAppear 0.55s ease both;
+}
+
+
+/* =====================================================
+   SIDEBAR APPEAR
+===================================================== */
+
+@keyframes sidebarAppear {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+/* =====================================================
+   LOGO
+===================================================== */
+
+.sidebar-logo {
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 2px 9px 25px;
+}
+
+
+.sidebar-logo-icon {
+  width: 43px;
+  height: 43px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f0f9e6,
+      #ffffff
+    );
+
+  border: 1px solid #dfedd9;
+
+  box-shadow:
+    0 7px 18px rgba(76, 175, 80, 0.08);
+
+  overflow: hidden;
+}
+
+
+.sidebar-logo-img {
+  width: 31px;
+  height: 31px;
+
+  object-fit: contain;
+}
+
+
+.sidebar-brand-text h2 {
+  margin: 0;
+
+  color: #1e7a3a;
+
+  font-size: 22px;
+
+  line-height: 1;
+
+  font-weight: 900;
+
+  letter-spacing: -0.05em;
+}
+
+
+.sidebar-brand-text h2 span {
+  color: #ff6fa7;
+}
+
+
+.sidebar-brand-text p {
+  margin: 5px 0 0;
+
+  color: #829087;
+
+  font-size: 7px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.09em;
+}
+
+
+/* =====================================================
+   SECTION
+===================================================== */
+
+.sidebar-section {
+  margin-bottom: 8px;
+}
+
+
+.sidebar-section-title {
+  margin: 4px 10px 9px;
+
+  color: #a0aaa3;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.13em;
+}
+
+
+/* =====================================================
+   MENU
+===================================================== */
+
+.sidebar-menu {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.sidebar-link {
+  display: block;
+
+  color: inherit;
+
+  text-decoration: none;
+
+  outline: none;
+}
+
+
+.sidebar-item {
+  position: relative;
+
+  min-height: 45px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 0 13px;
+
+  border-radius: 13px;
+
+  color: #627067;
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    background 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+
+/* =====================================================
+   ICON
+===================================================== */
+
+.sidebar-icon {
+  width: 21px;
+  height: 21px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  color: #718078;
+
+  transition:
+    color 0.22s ease,
+    transform 0.22s ease;
+}
+
+
+.sidebar-item-text {
+  font-size: 11px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   HOVER
+===================================================== */
+
+.sidebar-item:hover {
+  color: #1e7a3a;
+
+  background: #f2faee;
+}
+
+
+.sidebar-item:hover .sidebar-icon {
+  color: #4caf50;
+
+  transform: scale(1.08);
+}
+
+
+/* =====================================================
+   ACTIVE
+===================================================== */
+
+.sidebar-item.active {
+  color: #1e7a3a;
+
+  background:
+    linear-gradient(
+      90deg,
+      #e7f6d5,
+      #f0f9e8
+    );
+
+  box-shadow:
+    inset 0 0 0 1px rgba(139, 195, 74, 0.08);
+}
+
+
+.sidebar-item.active .sidebar-icon {
+  color: #4caf50;
+}
+
+
+.sidebar-item.active .sidebar-item-text {
+  font-weight: 850;
+}
+
+
+/* =====================================================
+   ACTIVE INDICATOR
+===================================================== */
+
+.sidebar-active-indicator {
+  position: absolute;
+
+  right: 8px;
+
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #4caf50;
+
+  box-shadow:
+    0 0 0 4px rgba(76, 175, 80, 0.09);
+}
+
+
+/* =====================================================
+   ACCOUNT
+===================================================== */
+
+.sidebar-account-section {
+  margin-top: 13px;
+
+  padding-top: 16px;
+
+  border-top: 1px solid #edf2eb;
+}
+
+
+/* =====================================================
+   MOTIVATION
+===================================================== */
+
+.sidebar-motivation {
+  position: relative;
+
+  display: flex;
+
+  gap: 10px;
+
+  margin-top: auto;
+
+  padding: 14px;
+
+  min-height: 96px;
+
+  overflow: hidden;
+
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f3fae9,
+      #fff6fa
+    );
+
+  border: 1px solid #e9eedf;
+}
+
+
+.sidebar-motivation::after {
+  content: "🌿";
+
+  position: absolute;
+
+  right: -7px;
+  bottom: -20px;
+
+  font-size: 65px;
+
+  opacity: 0.13;
+
+  transform: rotate(-12deg);
+
+  pointer-events: none;
+}
+
+
+.motivation-icon {
+  position: relative;
+
+  z-index: 2;
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #4caf50;
+
+  box-shadow:
+    0 4px 10px rgba(76, 175, 80, 0.08);
+}
+
+
+.motivation-content {
+  position: relative;
+
+  z-index: 2;
+}
+
+
+.motivation-content strong {
+  display: block;
+
+  margin-top: 1px;
+
+  color: #294a32;
+
+  font-size: 10px;
+
+  font-weight: 900;
+}
+
+
+.motivation-content p {
+  max-width: 125px;
+
+  margin: 5px 0 0;
+
+  color: #7d8a81;
+
+  font-size: 8px;
+
+  line-height: 1.5;
+
+  font-weight: 600;
+}
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.sidebar-footer {
+  padding-top: 13px;
+}
+
+
+.logout-btn {
+  width: 100%;
+
+  min-height: 43px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 0 13px;
+
+  border: none;
+
+  border-radius: 13px;
+
+  background: transparent;
+
+  color: #89938d;
+
+  font-family: inherit;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+
+.logout-btn:hover {
+  color: #e45e83;
+
+  background: #fff1f5;
+}
+
+
+.logout-btn svg {
+  transition:
+    transform 0.2s ease;
+}
+
+
+.logout-btn:hover svg {
+  transform: translateX(2px);
+}
+
+
+.sidebar-copyright {
+  margin: 10px 0 0;
+
+  color: #b0b9b3;
+
+  font-size: 7px;
+
+  text-align: center;
+}
+
+
+/* =====================================================
+   SCROLLBAR
+===================================================== */
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #d8e8d3;
+
+  border-radius: 10px;
+}
+
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+/* =====================================================
+   MOBILE CLOSE BUTTON
+===================================================== */
+
+.sidebar-mobile-close {
+  display: none;
+
+  position: absolute;
+
+  top: 14px;
+  right: 14px;
+
+  width: 30px;
+  height: 30px;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius: 9px;
+
+  color: #758178;
+
+  background: #f2f7ef;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.sidebar-mobile-close:hover {
+  color: #4caf50;
+
+  background: #eaf5e5;
+
+  transform: rotate(3deg);
+}
+
+
+/* =====================================================
+   MOBILE OVERLAY
+===================================================== */
+
+.sidebar-overlay {
+  display: none;
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 150;
+
+  background: rgba(31, 48, 36, 0.28);
+
+  backdrop-filter: blur(2px);
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1100px) {
+
+  .sidebar {
+    width: 230px;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 768px) {
+
+  .sidebar {
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: 245px;
+
+    padding:
+      24px
+      15px
+      15px;
+
+    border-radius: 0 24px 24px 0;
+
+    transform: translateX(-110%);
+
+    transition:
+      transform 0.35s
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      );
+
+    animation: none;
+
+    box-shadow:
+      12px 0 40px rgba(39, 80, 45, 0.13);
+  }
+
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+
+  .sidebar-mobile-close {
+    display: flex;
+  }
+
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+
+  .sidebar-logo {
+    padding-right: 42px;
+  }
+
+
+  .sidebar-motivation {
+    min-height: 90px;
+  }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 480px) {
+
+  .sidebar {
+    width: 235px;
+  }
+
+
+  .sidebar-item {
+    min-height: 44px;
+  }
+
+
+  .sidebar-logo {
+    padding-bottom: 22px;
+  }
+
+}
+
+
+/* =====================================================
+   REDUCE MOTION
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .sidebar,
+  .sidebar-item,
+  .sidebar-icon,
+  .logout-btn,
+  .sidebar-mobile-close {
+    animation: none;
+
+    transition: none;
+  }
+
+}

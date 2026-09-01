@@ -1,0 +1,264 @@
+/* =========================================================
+   TONCCI DASHBOARD
+   MAIN LAYOUT
+========================================================= */
+
+:root {
+  --tongci-green: #4caf50;
+  --tongci-green-dark: #347b3a;
+  --tongci-lime: #8bc34a;
+  --tongci-pink: #ff6fa7;
+
+  --dashboard-bg: #f7faf5;
+
+  --text-dark: #263a2d;
+  --text-main: #35463b;
+  --text-soft: #8e9992;
+
+  --border-soft: #e6eee3;
+
+  --sidebar-width: 218px;
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+.dashboard-layout,
+.dashboard-layout * {
+  box-sizing: border-box;
+}
+
+
+.dashboard-layout {
+  position: relative;
+
+  min-height: 100vh;
+
+  display: flex;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 85% 5%,
+      rgba(139, 195, 74, 0.08),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 15% 80%,
+      rgba(255, 111, 167, 0.035),
+      transparent 24%
+    ),
+    var(--dashboard-bg);
+
+  color: var(--text-main);
+}
+
+
+/* =========================================================
+   BACKGROUND ORBS
+========================================================= */
+
+.dashboard-bg-orb {
+  position: fixed;
+
+  z-index: 0;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(2px);
+}
+
+
+.orb-one {
+  width: 260px;
+  height: 260px;
+
+  top: -130px;
+  right: 170px;
+
+  background:
+    rgba(139, 195, 74, 0.07);
+}
+
+
+.orb-two {
+  width: 210px;
+  height: 210px;
+
+  bottom: -100px;
+  left: 300px;
+
+  background:
+    rgba(255, 111, 167, 0.035);
+}
+
+
+/* =========================================================
+   MAIN AREA
+========================================================= */
+
+.dashboard-main {
+  position: relative;
+
+  z-index: 1;
+
+  min-width: 0;
+
+  flex: 1;
+
+  margin-left: var(--sidebar-width);
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.dashboard-content {
+  width: 100%;
+
+  max-width: 1440px;
+
+  margin: 0 auto;
+
+  padding: 22px 34px 55px;
+}
+
+
+/* =========================================================
+   TWO COLUMN
+========================================================= */
+
+.dashboard-two-column {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.35fr)
+    minmax(290px, 0.65fr);
+
+  gap: 18px;
+
+  align-items: start;
+
+  margin-top: 28px;
+}
+
+
+/* =========================================================
+   GLOBAL LINKS
+========================================================= */
+
+.dashboard-content a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+/* =========================================================
+   GLOBAL BUTTON
+========================================================= */
+
+.dashboard-content button {
+  font-family: inherit;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.dashboard-layout::-webkit-scrollbar {
+  width: 7px;
+}
+
+
+.dashboard-layout::-webkit-scrollbar-track {
+  background: #f4f7f2;
+}
+
+
+.dashboard-layout::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background: #d6e2d2;
+}
+
+
+.dashboard-layout::-webkit-scrollbar-thumb:hover {
+  background: #b9cdb4;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
+
+  :root {
+    --sidebar-width: 190px;
+  }
+
+
+  .dashboard-content {
+    padding: 20px 24px 45px;
+  }
+
+
+  .dashboard-two-column {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .dashboard-main {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+
+  .dashboard-content {
+    padding: 17px 16px 40px;
+  }
+
+
+  .dashboard-two-column {
+    gap: 15px;
+
+    margin-top: 20px;
+  }
+
+
+  .dashboard-bg-orb {
+    opacity: 0.5;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+  .dashboard-content {
+    padding:
+      14px
+      12px
+      35px;
+  }
+
+}
