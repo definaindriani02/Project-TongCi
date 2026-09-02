@@ -79,7 +79,6 @@ export default function KlasifikasiAI() {
   const capturePhoto = () => {
     if (videoRef.current) {
       const canvas = document.createElement("canvas");
-      // Use original video resolution
       canvas.width = videoRef.current.videoWidth || 640;
       canvas.height = videoRef.current.videoHeight || 480;
       const ctx = canvas.getContext("2d");
@@ -140,7 +139,7 @@ export default function KlasifikasiAI() {
     }
   };
 
-  // SAVE RESULTS FOR POINTS
+  // SAVE RESULTS FOR POINTS VIA SUPABASE RPC
   const saveScanPoints = async () => {
     if (!user) {
       setErrorMsg("Kamu harus masuk (Login) terlebih dahulu untuk mengklaim poin!");
@@ -153,36 +152,30 @@ export default function KlasifikasiAI() {
     setSuccessMsg("");
 
     try {
-      // 1. Insert scan record
-      const { error: scanError } = await supabase.from("scans").insert({
-        user_id: user.id,
-        item_name: scanResult.item_name,
-        category: scanResult.category,
-        confidence: scanResult.confidence,
-        disposal_instructions: scanResult.disposal_instructions,
-        image_url: null, // Keep null or save storage url
-        points_awarded: 18,
+      // Panggil fungsi RPC claim_scan_points di Supabase Database
+      const { data, error } = await supabase.rpc("claim_scan_points", {
+        p_waste_name: scanResult.item_name || "Sampah Terdeteksi",
+        p_category: scanResult.category || "Anorganik",
+        p_points_earned: 18,
+        p_image_url: null,
       });
 
-      if (scanError) throw scanError;
+      if (error) throw error;
 
-      // 2. Increment points in profiles table
-      const currentPoints = profile?.points || 0;
-      const newPoints = currentPoints + 18;
+      // Update state lokal profil agar tampilan UI langsung berubah
+      if (data) {
+        setProfile((prev) => ({
+          ...prev,
+          points: data.points,
+          total_scan: data.total_scan,
+        }));
+      }
 
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ points: newPoints, updated_at: new Date().toISOString() })
-        .eq("id", user.id);
-
-      if (profileError) throw profileError;
-
-      setProfile((prev) => ({ ...prev, points: newPoints }));
       setPointsSaved(true);
-      setSuccessMsg("Poin berhasil diklaim! +18 Pts ditambahkan ke akun Anda.");
+      setSuccessMsg(`Poin berhasil diklaim! +18 Pts ditambahkan ke akun Anda.`);
     } catch (err) {
-      console.error("Gagal menyimpan poin:", err);
-      setErrorMsg("Gagal menyimpan poin ke database: " + err.message);
+      console.error("Gagal menyimpan poin:", err?.message || err);
+      setErrorMsg("Gagal menyimpan poin ke database: " + (err?.message || "Terjadi kesalahan"));
     } finally {
       setSaving(false);
     }
