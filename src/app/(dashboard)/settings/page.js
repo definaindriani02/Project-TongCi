@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Bell, Eye, LockKeyhole, Monitor, Save, Trash2, UserRound } from "lucide-react";
+import { Bell, CheckCircle2, Eye, LockKeyhole, Monitor, Save, Trash2, UserRound, X } from "lucide-react";
 
 const menu = [
   ["Akun", UserRound],
@@ -30,13 +30,16 @@ function Toggle({ enabled, onChange }) {
   );
 }
 
-function Field({ label, type = "text", value, placeholder }) {
+// Fixed: Menggunakan value dan onChange dinamis
+function Field({ label, type = "text", value, onChange, placeholder, name }) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-[11px] font-bold text-slate-600">{label}</span>
       <input
         type={type}
-        defaultValue={value}
+        name={name}
+        value={value}
+        onChange={onChange}
         placeholder={placeholder}
         className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50"
       />
@@ -58,6 +61,22 @@ function Section({ id, title, description, children }) {
 
 export default function SettingsPage() {
   const [active, setActive] = useState("Akun");
+
+  // 1. State Profil Akun
+  const [profile, setProfile] = useState({
+    nama: "Nadia Lestari",
+    email: "nadia.lestari@email.com",
+    phone: "+62 812-3456-7890",
+  });
+
+  // 2. State Password
+  const [passwords, setPasswords] = useState({
+    oldPass: "",
+    newPass: "",
+    confirmPass: "",
+  });
+
+  // 3. State Switches / Toggles
   const [switches, setSwitches] = useState({
     scan: true,
     points: true,
@@ -68,11 +87,51 @@ export default function SettingsPage() {
     history: false,
   });
 
+  // State Feedback UI
+  const [toast, setToast] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const toggle = (key) => setSwitches((current) => ({ ...current, [key]: !current[key] }));
 
   const go = (item) => {
     setActive(item);
     document.getElementById(item.toLowerCase())?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const showNotification = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  };
+
+  // Handlers
+  const handleProfileChange = (e) => {
+    setProfile({ ...profile, [e.target.name]: e.target.value });
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswords({ ...passwords, [e.target.name]: e.target.value });
+  };
+
+  const handleSaveProfile = () => {
+    showNotification("Informasi profil berhasil diperbarui! 🎉");
+  };
+
+  const handleSavePassword = () => {
+    if (!passwords.oldPass || !passwords.newPass) {
+      alert("Harap isi password lama dan password baru!");
+      return;
+    }
+    if (passwords.newPass !== passwords.confirmPass) {
+      alert("Konfirmasi password baru tidak cocok!");
+      return;
+    }
+    showNotification("Password berhasil diubah!");
+    setPasswords({ oldPass: "", newPass: "", confirmPass: "" });
+  };
+
+  const handleDeleteAccount = () => {
+    setShowDeleteModal(false);
+    showNotification("Permintaan hapus akun dikirim.");
   };
 
   const renderOptions = (items) => (
@@ -90,13 +149,22 @@ export default function SettingsPage() {
   );
 
   return (
-    <div className="space-y-6 pb-4 transition-colors duration-300">
+    <div className="relative space-y-6 pb-4 transition-colors duration-300">
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white shadow-xl animate-bounce">
+          <CheckCircle2 size={16} />
+          <span>{toast}</span>
+        </div>
+      )}
+
       <section>
         <h1 className="text-2xl font-extrabold tracking-tight text-slate-800 md:text-3xl">Pengaturan</h1>
         <p className="mt-1 text-xs font-medium text-slate-500">Kelola preferensi akun dan aplikasi.</p>
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[210px_minmax(0,1fr)]">
+        {/* Navigation Sidebar */}
         <aside className="h-fit rounded-3xl border border-slate-100 bg-white p-3 shadow-sm">
           <nav className="flex gap-1 overflow-x-auto lg:flex-col">
             {menu.map(([item, Icon]) => (
@@ -117,35 +185,41 @@ export default function SettingsPage() {
           </nav>
         </aside>
 
+        {/* Content Form */}
         <div className="space-y-7 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm md:p-7">
+          {/* Akun */}
           <Section id="akun" title="Akun" description="Perbarui informasi dasar untuk akun TongCi Anda.">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Nama" value="Nadia Lestari" />
-              <Field label="Email" type="email" value="nadia.lestari@email.com" />
-              <Field label="Nomor HP" value="+62 812-3456-7890" />
+              <Field label="Nama" name="nama" value={profile.nama} onChange={handleProfileChange} />
+              <Field label="Email" type="email" name="email" value={profile.email} onChange={handleProfileChange} />
+              <Field label="Nomor HP" name="phone" value={profile.phone} onChange={handleProfileChange} />
             </div>
             <button
               type="button"
+              onClick={handleSaveProfile}
               className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm shadow-emerald-100 transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:scale-95"
             >
               <Save size={14} /> Simpan Perubahan
             </button>
           </Section>
 
+          {/* Keamanan */}
           <Section id="keamanan" title="Keamanan" description="Gunakan kata sandi yang kuat untuk melindungi akun Anda.">
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="Password Lama" type="password" placeholder="••••••••" />
-              <Field label="Password Baru" type="password" placeholder="••••••••" />
-              <Field label="Konfirmasi Password" type="password" placeholder="••••••••" />
+              <Field label="Password Lama" type="password" name="oldPass" value={passwords.oldPass} onChange={handlePasswordChange} placeholder="••••••••" />
+              <Field label="Password Baru" type="password" name="newPass" value={passwords.newPass} onChange={handlePasswordChange} placeholder="••••••••" />
+              <Field label="Konfirmasi Password" type="password" name="confirmPass" value={passwords.confirmPass} onChange={handlePasswordChange} placeholder="••••••••" />
             </div>
             <button
               type="button"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
+              onClick={handleSavePassword}
+              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 active:scale-95"
             >
               <LockKeyhole size={14} /> Ubah Password
             </button>
           </Section>
 
+          {/* Notifikasi */}
           <Section id="notifikasi" title="Notifikasi" description="Pilih informasi yang ingin Anda terima.">
             {renderOptions([
               ["Notifikasi Scan", "Dapatkan kabar setelah scan diproses.", "scan"],
@@ -155,6 +229,7 @@ export default function SettingsPage() {
             ])}
           </Section>
 
+          {/* Tampilan */}
           <Section id="tampilan" title="Tampilan" description="Sesuaikan pengalaman visual aplikasi.">
             <div className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -169,6 +244,7 @@ export default function SettingsPage() {
             </div>
           </Section>
 
+          {/* Privasi */}
           <Section id="privasi" title="Privasi" description="Atur visibilitas informasi Anda di komunitas TongCi.">
             {renderOptions([
               ["Profil Publik", "Izinkan pengguna lain melihat profil Anda.", "public"],
@@ -177,6 +253,7 @@ export default function SettingsPage() {
             ])}
           </Section>
 
+          {/* Zona Berbahaya */}
           <section className="rounded-2xl border border-pink-100 bg-pink-50 p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -187,6 +264,7 @@ export default function SettingsPage() {
               </div>
               <button
                 type="button"
+                onClick={() => setShowDeleteModal(true)}
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-pink-500 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-pink-600 active:scale-95"
               >
                 <Trash2 size={14} /> Hapus Akun
@@ -195,6 +273,37 @@ export default function SettingsPage() {
           </section>
         </div>
       </div>
+
+      {/* Modal Hapus Akun */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-sm font-extrabold text-slate-800">Konfirmasi Hapus Akun</h3>
+              <button onClick={() => setShowDeleteModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Apakah kamu yakin ingin menghapus akun ini? Semua poin dan riwayat scan kamu akan hilang permanen.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                className="px-4 py-2 rounded-xl bg-pink-500 text-xs font-bold text-white hover:bg-pink-600"
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
