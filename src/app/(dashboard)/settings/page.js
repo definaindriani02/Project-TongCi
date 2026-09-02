@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Bell, CheckCircle2, Eye, LockKeyhole, Monitor, Save, Trash2, UserRound, X } from "lucide-react";
 
 const menu = [
@@ -30,7 +30,6 @@ function Toggle({ enabled, onChange }) {
   );
 }
 
-// Fixed: Menggunakan value dan onChange dinamis
 function Field({ label, type = "text", value, onChange, placeholder, name }) {
   return (
     <label className="block">
@@ -62,21 +61,29 @@ function Section({ id, title, description, children }) {
 export default function SettingsPage() {
   const [active, setActive] = useState("Akun");
 
-  // 1. State Profil Akun
+  // State Profil Akun (disamakan default-nya dengan ProfilPage)
   const [profile, setProfile] = useState({
-    nama: "Nadia Lestari",
-    email: "nadia.lestari@email.com",
+    nama: "Defina Indriani",
+    email: "defina.indriani@email.com",
     phone: "+62 812-3456-7890",
   });
 
-  // 2. State Password
+  // Load data tersimpan dari localStorage saat halaman Settings dimuat
+  useEffect(() => {
+    const savedProfile = localStorage.getItem("userProfile");
+    if (savedProfile) {
+      setProfile((prev) => ({ ...prev, ...JSON.parse(savedProfile) }));
+    }
+  }, []);
+
+  // State Password
   const [passwords, setPasswords] = useState({
     oldPass: "",
     newPass: "",
     confirmPass: "",
   });
 
-  // 3. State Switches / Toggles
+  // State Switches / Toggles
   const [switches, setSwitches] = useState({
     scan: true,
     points: true,
@@ -112,7 +119,9 @@ export default function SettingsPage() {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
   };
 
+  // Simpan perubahan profil ke localStorage
   const handleSaveProfile = () => {
+    localStorage.setItem("userProfile", JSON.stringify(profile));
     showNotification("Informasi profil berhasil diperbarui! 🎉");
   };
 
@@ -277,26 +286,26 @@ export default function SettingsPage() {
       {/* Modal Hapus Akun */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl space-y-4">
-            <div className="flex justify-between items-center">
+          <div className="w-full max-w-sm space-y-4 rounded-3xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between">
               <h3 className="text-sm font-extrabold text-slate-800">Konfirmasi Hapus Akun</h3>
               <button onClick={() => setShowDeleteModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X size={18} />
               </button>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs leading-relaxed text-slate-500">
               Apakah kamu yakin ingin menghapus akun ini? Semua poin dan riwayat scan kamu akan hilang permanen.
             </p>
-            <div className="flex gap-2 justify-end">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
               >
                 Batal
               </button>
               <button
                 onClick={handleDeleteAccount}
-                className="px-4 py-2 rounded-xl bg-pink-500 text-xs font-bold text-white hover:bg-pink-600"
+                className="rounded-xl bg-pink-500 px-4 py-2 text-xs font-bold text-white hover:bg-pink-600"
               >
                 Ya, Hapus
               </button>

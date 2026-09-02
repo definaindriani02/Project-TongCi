@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import {
   Award,
   CalendarDays,
-  Check,
   Edit3,
   LockKeyhole,
   LogOut,
@@ -16,8 +15,16 @@ import {
   ScanLine,
   ShieldCheck,
   UserRound,
-  X,
 } from "lucide-react";
+
+const profileItems = [
+  ["Nama", "Defina Indriani", UserRound],
+  ["Email", "defina.indriani@email.com", Mail],
+  ["Nomor HP", "+62 812-3456-7890", Phone],
+  ["Jenis Kelamin", "Perempuan", UserRound],
+  ["Tanggal Lahir", "12 Mei 2001", CalendarDays],
+  ["Alamat", "Semarang, Jawa Tengah", MapPin],
+];
 
 const stats = [
   ["Total Scan", "42", ScanLine, "text-emerald-600 bg-emerald-50"],
@@ -34,7 +41,7 @@ const activities = [
   ["18 Jul 2026", "Sisa Sayuran", "Berhasil", "+12"],
 ];
 
-function ActionButton({ children, href, onClick, danger = false, icon: Icon }) {
+function ActionButton({ children, href, danger = false, icon: Icon }) {
   const classes = danger
     ? "border-pink-200 bg-pink-50 text-pink-600 hover:bg-pink-100"
     : "border-emerald-200 bg-white text-emerald-600 hover:bg-emerald-50";
@@ -46,21 +53,16 @@ function ActionButton({ children, href, onClick, danger = false, icon: Icon }) {
     </>
   );
 
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold transition-all hover:-translate-y-0.5 active:scale-95 ${classes}`}
-      >
-        {content}
-      </Link>
-    );
-  }
-
-  return (
+  return href ? (
+    <Link
+      href={href}
+      className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold transition-all hover:-translate-y-0.5 active:scale-95 ${classes}`}
+    >
+      {content}
+    </Link>
+  ) : (
     <button
       type="button"
-      onClick={onClick}
       className={`inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-xs font-bold transition-all hover:-translate-y-0.5 active:scale-95 ${classes}`}
     >
       {content}
@@ -69,39 +71,6 @@ function ActionButton({ children, href, onClick, danger = false, icon: Icon }) {
 }
 
 export default function ProfilPage() {
-  const [isEditing, setIsEditing] = useState(false);
-
-  // State Profil Interaktif
-  const [profile, setProfile] = useState({
-    nama: "Defina Indriani",
-    email: "defina.indriani@email.com",
-    phone: "+62 812-3456-7890",
-    gender: "Perempuan",
-    birthDate: "12 Mei 2001",
-    address: "Semarang, Jawa Tengah",
-  });
-
-  // Fungsi membuat Inisial Nama (contoh: Defina Indriani -> DI)
-  const getInitials = (name) => {
-    if (!name) return "U";
-    const parts = name.trim().split(" ");
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return parts[0][0].toUpperCase();
-  };
-
-  const handleChange = (e) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
-  };
-
-  const profileFields = [
-    { label: "Nama", name: "nama", value: profile.nama, icon: UserRound },
-    { label: "Email", name: "email", value: profile.email, icon: Mail, type: "email" },
-    { label: "Nomor HP", name: "phone", value: profile.phone, icon: Phone },
-    { label: "Jenis Kelamin", name: "gender", value: profile.gender, icon: UserRound },
-    { label: "Tanggal Lahir", name: "birthDate", value: profile.birthDate, icon: CalendarDays },
-    { label: "Alamat", name: "address", value: profile.address, icon: MapPin, fullWidth: true },
-  ];
-
   return (
     <div className="space-y-6 pb-4">
       {/* Header */}
@@ -115,39 +84,25 @@ export default function ProfilPage() {
         <div className="absolute -right-10 -top-12 h-44 w-44 rounded-full bg-white/10" />
         <div className="relative flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:text-left">
-            {/* Avatar Inisial Dinamis */}
             <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-white/30 bg-white text-xl font-extrabold text-emerald-600 shadow-lg">
-              {getInitials(profile.nama)}
+              DI
             </div>
             <div className="text-center sm:text-left">
               <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider">
                 <ShieldCheck size={11} /> TongCi Member
               </div>
-              <h2 className="text-xl font-extrabold">{profile.nama}</h2>
-              <p className="mt-1 text-xs font-medium text-emerald-50">{profile.email}</p>
+              <h2 className="text-xl font-extrabold">Defina Indriani</h2>
+              <p className="mt-1 text-xs font-medium text-emerald-50">defina.indriani@email.com</p>
             </div>
           </div>
 
-          {/* Tombol Toggle Edit Modal / Inline */}
-          <button
-            type="button"
-            onClick={() => setIsEditing(!isEditing)}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold shadow-sm transition-all hover:-translate-y-0.5 active:scale-95 ${
-              isEditing
-                ? "bg-amber-400 text-slate-900 hover:bg-amber-300"
-                : "bg-white text-emerald-700 hover:bg-emerald-50"
-            }`}
+          {/* Navigasi langsung ke Settings (Akun) */}
+          <Link
+            href="/settings#akun"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-extrabold text-emerald-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-emerald-50 active:scale-95"
           >
-            {isEditing ? (
-              <>
-                <Check size={14} /> Simpan Profil
-              </>
-            ) : (
-              <>
-                <Edit3 size={14} /> Edit Profil
-              </>
-            )}
-          </button>
+            <Edit3 size={14} /> Edit Profil
+          </Link>
         </div>
       </section>
 
@@ -155,40 +110,20 @@ export default function ProfilPage() {
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {/* Card Informasi Pribadi */}
         <article className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm md:p-6">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-sm font-extrabold text-slate-800">Informasi Pribadi</h2>
-            {isEditing && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-extrabold text-amber-700">
-                Mode Edit
-              </span>
-            )}
-          </div>
-
+          <h2 className="mb-5 text-sm font-extrabold text-slate-800">Informasi Pribadi</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {profileFields.map(({ label, name, value, icon: Icon, type = "text", fullWidth }) => (
+            {profileItems.map(([label, value, Icon]) => (
               <div
                 key={label}
                 className={`${
-                  fullWidth ? "sm:col-span-2" : ""
+                  label === "Alamat" ? "sm:col-span-2" : ""
                 } rounded-2xl bg-slate-50/70 p-3 transition-colors hover:bg-emerald-50/60`}
               >
                 <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
                   <Icon size={12} className="text-emerald-500" />
                   {label}
                 </div>
-
-                {/* Switch antara Text Biasa atau Input Field */}
-                {isEditing ? (
-                  <input
-                    type={type}
-                    name={name}
-                    value={value}
-                    onChange={handleChange}
-                    className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                  />
-                ) : (
-                  <p className="mt-1.5 text-xs font-bold text-slate-700">{value}</p>
-                )}
+                <p className="mt-1.5 text-xs font-bold text-slate-700">{value}</p>
               </div>
             ))}
           </div>
@@ -257,8 +192,8 @@ export default function ProfilPage() {
 
       {/* Action Buttons */}
       <section className="flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row">
-        <ActionButton onClick={() => setIsEditing(!isEditing)} icon={Edit3}>
-          {isEditing ? "Selesai Edit" : "Edit Profil"}
+        <ActionButton href="/settings#akun" icon={Edit3}>
+          Edit Profil
         </ActionButton>
         <ActionButton href="/settings#keamanan" icon={LockKeyhole}>
           Ubah Password
