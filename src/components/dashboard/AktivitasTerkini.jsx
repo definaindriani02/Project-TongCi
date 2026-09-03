@@ -1,302 +1,142 @@
 "use client";
-import "./AktivitasTerkini.css";
+
+import React from "react";
 import { motion } from "framer-motion";
-import {
-  ScanSearch,
-  ArrowRight,
-  Recycle,
-  Clock3,
-  Sparkles,
-} from "lucide-react";
-import Link from "next/link";
+import { Clock, ChevronRight, Leaf, Sparkles, Inbox } from "lucide-react";
+import "./AktivitasTerkini.css";
 
-export default function AktivitasTerkini({ scans = [] }) {
+// Helper untuk format kategori sampah & badge style
+const getCategoryBadge = (category = "") => {
+  const cat = category.toLowerCase();
+  if (cat.includes("organik")) {
+    return { label: "Organik", className: "badge-organik", icon: "🌱" };
+  }
+  if (cat.includes("anorganik") || cat.includes("plastik") || cat.includes("kertas")) {
+    return { label: "Anorganik", className: "badge-anorganik", icon: "♻️" };
+  }
+  if (cat.includes("b3") || cat.includes("bahaya") || cat.includes("elektronik")) {
+    return { label: "B3 / Bahaya", className: "badge-b3", icon: "⚠️" };
+  }
+  return { label: category || "Umum", className: "badge-default", icon: "📦" };
+};
 
-  const getCategoryStyle = (category = "") => {
-    const value = category.toLowerCase();
+// Helper format tanggal sederhana
+const formatTimeAgo = (dateString) => {
+  if (!dateString) return "-";
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
 
-    if (
-      value.includes("organik") ||
-      value.includes("organic")
-    ) {
-      return {
-        className: "activity-category organic",
-        icon: "🌿",
-      };
-    }
+  if (seconds < 60) return "Baru saja";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m yang lalu`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}j yang lalu`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}hr yang lalu`;
 
-    if (
-      value.includes("plastik") ||
-      value.includes("plastic")
-    ) {
-      return {
-        className: "activity-category plastic",
-        icon: "♻️",
-      };
-    }
+  return date.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+  });
+};
 
-    if (
-      value.includes("kertas") ||
-      value.includes("paper")
-    ) {
-      return {
-        className: "activity-category paper",
-        icon: "📄",
-      };
-    }
-
-    if (
-      value.includes("kaca") ||
-      value.includes("glass")
-    ) {
-      return {
-        className: "activity-category glass",
-        icon: "🫙",
-      };
-    }
-
-    if (
-      value.includes("logam") ||
-      value.includes("metal")
-    ) {
-      return {
-        className: "activity-category metal",
-        icon: "🥫",
-      };
-    }
-
-    return {
-      className: "activity-category default",
-      icon: "🗑️",
-    };
-  };
-
-
-  const formatDate = (date) => {
-
-    if (!date) return "Baru saja";
-
-    const scanDate = new Date(date);
-
-    if (Number.isNaN(scanDate.getTime())) {
-      return "Baru saja";
-    }
-
-    return scanDate.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-
+export default function AktivitasTerkini({ scans = [], loading = false }) {
   return (
-    <section className="aktivitas-section">
-
-      {/* =========================================
-          HEADER
-      ========================================= */}
-
+    <div className="aktivitas-terkini-container">
+      {/* HEADER */}
       <div className="aktivitas-header">
-
-        <div>
-
-          <span className="aktivitas-label">
-            RIWAYAT AKTIVITAS
-          </span>
-
-          <h2>
-            Aktivitas Terbaru
-          </h2>
-
-          <p>
-            Perjalanan kecilmu menuju bumi yang lebih bersih.
-          </p>
-
+        <div className="aktivitas-header-title">
+          <div className="aktivitas-title-icon">
+            <Clock size={18} />
+          </div>
+          <div>
+            <h3>Aktivitas Terkini</h3>
+            <p>Riwayat pemilahan sampah terbaru</p>
+          </div>
         </div>
 
-
-        <Link
-          href="/statistik"
-          className="aktivitas-see-all"
-        >
-          Lihat semua
-
-          <ArrowRight size={14} />
-
-        </Link>
-
+        <button className="btn-see-all">
+          <span>Lihat Semua</span>
+          <ChevronRight size={14} />
+        </button>
       </div>
 
-
-      {/* =========================================
-          EMPTY STATE
-      ========================================= */}
-
-      {scans.length === 0 ? (
-
-        <motion.div
-          className="aktivitas-empty"
-
-          initial={{
-            opacity: 0,
-            y: 10,
-          }}
-
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-        >
-
-          <div className="empty-icon">
-            <ScanSearch size={24} />
-          </div>
-
-          <div>
-
-            <h3>
-              Belum ada aktivitas
-            </h3>
-
-            <p>
-              Yuk mulai scan sampah pertamamu dan
-              dapatkan poin!
-            </p>
-
-          </div>
-
-          <Link
-            href="/scan"
-            className="empty-button"
+      {/* CONTENT LIST */}
+      <div className="aktivitas-list">
+        {loading ? (
+          // SKELETON LOADING
+          Array.from({ length: 4 }).map((_, idx) => (
+            <div key={idx} className="aktivitas-item skeleton-item">
+              <div className="skeleton-thumb" />
+              <div className="skeleton-text-group">
+                <div className="skeleton-text skeleton-title" />
+                <div className="skeleton-text skeleton-subtitle" />
+              </div>
+              <div className="skeleton-badge" />
+            </div>
+          ))
+        ) : scans.length === 0 ? (
+          // EMPTY STATE
+          <motion.div
+            className="aktivitas-empty"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
           >
-            Mulai Scan
-            <ArrowRight size={14} />
-          </Link>
-
-        </motion.div>
-
-      ) : (
-
-        /* =========================================
-           ACTIVITY LIST
-        ========================================= */
-
-        <div className="aktivitas-list">
-
-          {scans.slice(0, 5).map((scan, index) => {
-
-            const categoryStyle =
-              getCategoryStyle(scan.category);
+            <div className="empty-icon">
+              <Inbox size={32} />
+            </div>
+            <h4>Belum Ada Aktivitas</h4>
+            <p>Mulai memilah dan scan sampah pertamamu untuk mengumpulkan poin!</p>
+          </motion.div>
+        ) : (
+          // DATA SCANS
+          scans.map((item, index) => {
+            const badge = getCategoryBadge(item.category);
 
             return (
-
               <motion.div
-                key={scan.id || index}
+                key={item.id || index}
                 className="aktivitas-item"
-
-                initial={{
-                  opacity: 0,
-                  x: -12,
-                }}
-
-                whileInView={{
-                  opacity: 1,
-                  x: 0,
-                }}
-
-                viewport={{
-                  once: true,
-                  amount: 0.2,
-                }}
-
-                transition={{
-                  duration: 0.4,
-                  delay: index * 0.07,
-                }}
-
-                whileHover={{
-                  x: 4,
-                }}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-
-                {/* ICON */}
-
-                <div className="activity-icon-wrapper">
-
-                  <div
-                    className={
-                      categoryStyle.className
-                    }
-                  >
-                    {categoryStyle.icon}
-                  </div>
-
+                {/* ICON / BADGE AVATAR */}
+                <div className="item-avatar">
+                  <span>{badge.icon}</span>
                 </div>
 
-
-                {/* INFO */}
-
-                <div className="activity-info">
-
-                  <div className="activity-title-row">
-
-                    <h3>
-                      {scan.item_name ||
-                        "Sampah terdeteksi"}
-                    </h3>
-
-                    <span className="activity-ai-badge">
-                      <Sparkles size={9} />
-                      AI
-                    </span>
-
+                {/* DETAILS */}
+                <div className="item-details">
+                  <h4 className="item-name">{item.item_name || "Sampah Terdeteksi"}</h4>
+                  <div className="item-meta">
+                    <span className="item-time">{formatTimeAgo(item.created_at)}</span>
+                    {item.confidence && (
+                      <>
+                        <span className="meta-dot">•</span>
+                        <span className="item-confidence">
+                          Akurasi {Math.round(item.confidence * 100)}%
+                        </span>
+                      </>
+                    )}
                   </div>
-
-
-                  <div className="activity-meta">
-
-                    <span>
-                      {scan.category ||
-                        "Tidak diketahui"}
-                    </span>
-
-                    <span className="meta-dot">
-                      •
-                    </span>
-
-                    <span>
-                      <Clock3 size={10} />
-                      {formatDate(scan.created_at)}
-                    </span>
-
-                  </div>
-
                 </div>
 
-
-                {/* POINT */}
-
-                <div className="activity-points">
-
-                  <span>
-                    +
-                    {scan.points_awarded || 0}
+                {/* CATEGORY & POINTS */}
+                <div className="item-right">
+                  <span className={`category-badge ${badge.className}`}>
+                    {badge.label}
                   </span>
-
-                  <small>
-                    Pts
-                  </small>
-
+                  <span className="item-points">
+                    +{item.points_awarded || 10} Pts
+                  </span>
                 </div>
-
               </motion.div>
             );
-          })}
-
-        </div>
-      )}
-
-    </section>
+          })
+        )}
+      </div>
+    </div>
   );
 }

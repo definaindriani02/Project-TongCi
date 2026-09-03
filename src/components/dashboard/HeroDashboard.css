@@ -1,784 +1,307 @@
-/* =====================================================
-   TONCCI HERO DASHBOARD
-===================================================== */
+/* =========================================================
+   TONGCI — HERO DASHBOARD (FULL IMPROVED & RESPONSIVE)
+========================================================= */
 
 .hero-dashboard {
   position: relative;
-
-  min-height: 285px;
-
+  width: 100%;
+  border: 1px solid #e2ecde;
+  border-radius: 24px;
   overflow: hidden;
-
+  background: radial-gradient(
+      circle at 82% 20%,
+      rgba(139, 195, 74, 0.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 95% 90%,
+      rgba(255, 111, 167, 0.1)
+    ),
+    linear-gradient(110deg, #effae8 0%, #f8fcf3 48%, #fff6fa 100%);
+  box-shadow: 0 10px 30px rgba(53, 100, 55, 0.06);
   margin-bottom: 24px;
-
-  border:
-    1px solid #e4eedf;
-
-  border-radius: 26px;
-
-  background:
-    linear-gradient(
-      115deg,
-      #f1fae8 0%,
-      #f8fbed 45%,
-      #fff6fa 100%
-    );
-
-  box-shadow:
-    0 14px 40px rgba(53, 100, 58, 0.055);
 }
 
-
-/* =====================================================
-   BACKGROUND GLOW
-===================================================== */
-
-.hero-dashboard-glow {
+/* =========================================================
+   BACKGROUND GLOWS
+========================================================= */
+.hero-glow {
   position: absolute;
-
   border-radius: 50%;
-
   pointer-events: none;
-
-  filter: blur(3px);
+  filter: blur(20px);
 }
-
 
 .hero-glow-one {
-  width: 250px;
-  height: 250px;
-
-  top: -145px;
-  right: 90px;
-
-  background:
-    rgba(139, 195, 74, 0.13);
+  width: 220px;
+  height: 220px;
+  top: -100px;
+  right: 100px;
+  background: rgba(139, 195, 74, 0.25);
 }
-
 
 .hero-glow-two {
-  width: 210px;
-  height: 210px;
-
-  right: -80px;
-  bottom: -120px;
-
-  background:
-    rgba(255, 111, 167, 0.09);
+  width: 180px;
+  height: 180px;
+  bottom: -80px;
+  right: -20px;
+  background: rgba(255, 111, 167, 0.2);
 }
 
-
-/* =====================================================
-   CONTENT
-===================================================== */
-
+/* =========================================================
+   CONTENT GRID
+========================================================= */
 .hero-dashboard-content {
   position: relative;
-
   z-index: 2;
-
-  min-height: 285px;
-
-  display: flex;
-
+  display: grid;
+  grid-template-columns: 1fr 280px;
   align-items: center;
-
-  justify-content: space-between;
-
-  gap: 30px;
-
-  padding:
-    35px
-    40px;
+  gap: 24px;
+  padding: 32px 40px;
 }
 
-
-/* =====================================================
-   TEXT
-===================================================== */
-
+/* =========================================================
+   LEFT TEXT & BADGE
+========================================================= */
 .hero-dashboard-text {
-  position: relative;
-
-  z-index: 5;
-
-  max-width: 610px;
+  max-width: 580px;
 }
-
 
 .hero-dashboard-badge {
-  width: fit-content;
-
-  display: flex;
-
+  display: inline-flex;
   align-items: center;
-
-  gap: 7px;
-
-  padding:
-    6px
-    10px
-    6px
-    6px;
-
-  border:
-    1px solid #dcebd3;
-
-  border-radius: 999px;
-
-  background:
-    rgba(255, 255, 255, 0.72);
-
-  color: #69806d;
-
-  font-size: 8px;
-
-  font-weight: 800;
-
-  box-shadow:
-    0 4px 12px rgba(60, 100, 60, 0.035);
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px 14px;
+  border: 1px solid #dbead4;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #436e49;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
-
 
 .hero-badge-icon {
-  width: 21px;
-  height: 21px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  color: #ffffff;
-
-  background:
-    linear-gradient(
-      135deg,
-      #4caf50,
-      #8bc34a
-    );
+  font-size: 12px;
 }
 
-
-.hero-dashboard-text h2 {
-  margin:
-    14px
-    0
-    9px;
-
-  color: #284332;
-
-  font-size: clamp(
-    25px,
-    3vw,
-    36px
-  );
-
-  line-height: 1.08;
-
-  letter-spacing: -0.055em;
-
-  font-weight: 900;
-}
-
-
-.hero-dashboard-text h2 span {
-  color: #4caf50;
-
-  position: relative;
-}
-
-
-.hero-dashboard-text h2 span::after {
-  content: "";
-
-  position: absolute;
-
-  left: 2px;
-  right: 2px;
-  bottom: -4px;
-
-  height: 4px;
-
-  border-radius: 999px;
-
-  background:
-    #cce7a7;
-
-  opacity: 0.65;
-}
-
-
-.hero-dashboard-text p {
-  max-width: 490px;
-
+.hero-title {
   margin: 0;
-
-  color: #7c8b81;
-
-  font-size: 10px;
-
-  line-height: 1.7;
-
-  font-weight: 600;
-}
-
-
-/* =====================================================
-   ACTION
-===================================================== */
-
-.hero-dashboard-actions {
-  display: flex;
-
-  align-items: center;
-
-  gap: 16px;
-
-  margin-top: 21px;
-}
-
-
-.hero-scan-button {
-  min-height: 42px;
-
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 8px;
-
-  padding:
-    0
-    13px
-    0
-    7px;
-
-  border-radius: 13px;
-
-  color: #ffffff;
-
-  background:
-    linear-gradient(
-      135deg,
-      #4caf50,
-      #66b94d
-    );
-
-  text-decoration: none;
-
-  font-size: 9px;
-
-  font-weight: 900;
-
-  box-shadow:
-    0 8px 20px rgba(76, 175, 80, 0.20);
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-
-.hero-scan-button:hover {
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 11px 24px rgba(76, 175, 80, 0.26);
-}
-
-
-.hero-scan-icon {
-  width: 29px;
-  height: 29px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 9px;
-
-  background:
-    rgba(255, 255, 255, 0.17);
-}
-
-
-.hero-arrow {
-  margin-left: 4px;
-
-  transition:
-    transform 0.2s ease;
-}
-
-
-.hero-scan-button:hover .hero-arrow {
-  transform: translateX(3px);
-}
-
-
-.hero-mini-info {
-  display: flex;
-
-  align-items: center;
-
-  gap: 7px;
-
-  color: #829087;
-
-  font-size: 8px;
-
-  font-weight: 700;
-}
-
-
-.hero-mini-icon {
-  width: 25px;
-  height: 25px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 8px;
-
-  color: #5ca34e;
-
-  background:
-    rgba(255, 255, 255, 0.7);
-}
-
-
-/* =====================================================
-   CICI AREA
-===================================================== */
-
-.hero-cici-area {
-  position: relative;
-
-  width: 310px;
-  height: 245px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-}
-
-
-/* =====================================================
-   ORBIT
-===================================================== */
-
-.cici-orbit {
-  position: absolute;
-
-  border-radius: 50%;
-
-  border: 1px dashed rgba(
-    76,
-    175,
-    80,
-    0.18
-  );
-}
-
-
-.orbit-one {
-  width: 205px;
-  height: 205px;
-}
-
-
-.orbit-two {
-  width: 155px;
-  height: 155px;
-
-  border-color:
-    rgba(
-      255,
-      111,
-      167,
-      0.14
-    );
-}
-
-
-/* =====================================================
-   CICI PLACEHOLDER
-===================================================== */
-
-.cici-placeholder {
-  position: relative;
-
-  z-index: 5;
-
-  width: 125px;
-  height: 145px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border-radius:
-    55px
-    55px
-    42px
-    42px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #ffffff,
-      #f0f8e9
-    );
-
-  border:
-    1px solid #dfead8;
-
-  box-shadow:
-    0 18px 35px rgba(
-      56,
-      105,
-      60,
-      0.11
-    );
-}
-
-
-.cici-placeholder-inner {
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-
-  gap: 3px;
-}
-
-
-.cici-placeholder-face {
-  font-size: 42px;
-
-  filter:
-    drop-shadow(
-      0 5px 5px
-      rgba(50, 100, 50, 0.08)
-    );
-}
-
-
-.cici-placeholder-text {
-  color: #4caf50;
-
-  font-size: 14px;
-
-  font-weight: 900;
-
+  color: #1f3825;
+  font-size: clamp(26px, 2.5vw, 36px);
+  line-height: 1.2;
+  font-weight: 800;
   letter-spacing: -0.03em;
 }
 
-
-/* =====================================================
-   SPEECH
-===================================================== */
-
-.cici-speech {
-  position: absolute;
-
-  z-index: 8;
-
-  top: 25px;
-  right: 24px;
-
-  padding:
-    8px
-    12px;
-
-  border:
-    1px solid #e4ecdf;
-
-  border-radius:
-    13px
-    13px
-    13px
-    4px;
-
-  color: #607366;
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.92
-    );
-
-  font-size: 8px;
-
-  font-weight: 900;
-
-  box-shadow:
-    0 7px 18px rgba(
-      60,
-      100,
-      60,
-      0.06
-    );
+.hero-title span {
+  color: #10b981;
 }
 
+.hero-subtitle {
+  margin: 12px 0 0 0;
+  color: #5d7363;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+.hero-dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  color: white;
+  background: #10b981;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.28);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  background: #059669;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  color: #2e7d32;
+  background: #ffffff;
+  border: 1.5px solid #d1e7dd;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+/* =========================================================
+   CICI MASCOT AREA & ANIMATIONS
+========================================================= */
+.hero-cici-area {
+  position: relative;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mascot-wrapper {
+  position: relative;
+  z-index: 3;
+  width: 170px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Kunci ukuran gambar agar tidak melebar */
+.hero-mascot-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.08));
+  animation: floatMascot 3.5s ease-in-out infinite;
+}
+
+/* Speech Bubble */
+.cici-speech {
+  position: absolute;
+  z-index: 5;
+  top: 0px;
+  right: 15px;
+  padding: 6px 12px;
+  border: 1px solid #dbead4;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #2e7d32;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  animation: floatBubble 3.5s ease-in-out infinite;
+}
 
 .cici-speech::after {
-  content: "";
-
+  content: '';
   position: absolute;
-
-  left: 12px;
+  left: 16px;
   bottom: -5px;
-
-  width: 9px;
-  height: 9px;
-
+  width: 8px;
+  height: 8px;
   background: #ffffff;
-
-  border-right:
-    1px solid #e4ecdf;
-
-  border-bottom:
-    1px solid #e4ecdf;
-
+  border-right: 1px solid #dbead4;
+  border-bottom: 1px solid #dbead4;
   transform: rotate(45deg);
 }
 
+/* Orbits */
+.cici-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(76, 175, 80, 0.25);
+  pointer-events: none;
+}
 
-/* =====================================================
-   FLOATING DECORATIONS
-===================================================== */
+.orbit-one {
+  width: 210px;
+  height: 210px;
+  animation: spinOrbit 20s linear infinite;
+}
 
+.orbit-two {
+  width: 150px;
+  height: 150px;
+  border-color: rgba(255, 111, 167, 0.25);
+  animation: spinOrbit 14s linear infinite reverse;
+}
+
+/* Floating Leaves */
 .hero-floating-leaf {
   position: absolute;
-
   z-index: 4;
-
-  font-size: 20px;
-
-  filter:
-    drop-shadow(
-      0 4px 5px
-      rgba(60, 100, 60, 0.08)
-    );
+  font-size: 18px;
+  pointer-events: none;
 }
-
 
 .leaf-one {
-  left: 25px;
-  top: 53px;
+  top: 25px;
+  left: 20px;
+  animation: floatLeaf 4s ease-in-out infinite;
 }
-
 
 .leaf-two {
-  right: 37px;
-  bottom: 44px;
-
-  font-size: 17px;
+  right: 25px;
+  bottom: 20px;
+  font-size: 16px;
+  animation: floatLeaf 3s ease-in-out infinite reverse;
 }
 
-
-/* =====================================================
-   TABLET
-===================================================== */
-
-@media (max-width: 1000px) {
-
-  .hero-dashboard-content {
-    padding:
-      30px;
-  }
-
-
-  .hero-cici-area {
-    width: 240px;
-  }
-
-
-  .cici-placeholder {
-    width: 110px;
-    height: 130px;
-  }
-
-
-  .orbit-one {
-    width: 180px;
-    height: 180px;
-  }
-
-
-  .orbit-two {
-    width: 140px;
-    height: 140px;
-  }
-
+/* =========================================================
+   KEYFRAMES ANIMATIONS
+========================================================= */
+@keyframes floatMascot {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
+@keyframes floatBubble {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
 
-/* =====================================================
-   MOBILE
-===================================================== */
+@keyframes floatLeaf {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(12deg); }
+}
 
-@media (max-width: 768px) {
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
-  .hero-dashboard {
-    min-height: auto;
-
-    border-radius: 21px;
-  }
-
-
+/* =========================================================
+   RESPONSIVE MEDIA QUERIES
+========================================================= */
+@media (max-width: 850px) {
   .hero-dashboard-content {
-    min-height: auto;
-
-    flex-direction: column;
-
-    align-items: flex-start;
-
-    padding:
-      27px
-      23px
-      10px;
+    grid-template-columns: 1fr;
+    padding: 24px;
+    text-align: center;
   }
-
-
   .hero-dashboard-text {
     max-width: 100%;
   }
-
-
-  .hero-dashboard-text h2 {
-    font-size: 28px;
-  }
-
-
-  .hero-dashboard-text p {
-    font-size: 9px;
-  }
-
-
   .hero-dashboard-actions {
-    margin-top: 17px;
+    justify-content: center;
   }
-
-
   .hero-cici-area {
-    width: 100%;
-
-    height: 190px;
-
-    margin-top: -2px;
+    height: 180px;
   }
-
-
-  .cici-placeholder {
-    width: 95px;
-    height: 112px;
-  }
-
-
-  .cici-placeholder-face {
-    font-size: 33px;
-  }
-
-
-  .cici-placeholder-text {
-    font-size: 11px;
-  }
-
-
-  .cici-speech {
-    top: 18px;
-    right: 22%;
-  }
-
-
-  .orbit-one {
-    width: 155px;
-    height: 155px;
-  }
-
-
-  .orbit-two {
-    width: 120px;
-    height: 120px;
-  }
-
-}
-
-
-/* =====================================================
-   SMALL MOBILE
-===================================================== */
-
-@media (max-width: 430px) {
-
-  .hero-dashboard-content {
-    padding:
-      24px
-      18px
-      5px;
-  }
-
-
-  .hero-dashboard-text h2 {
-    font-size: 25px;
-  }
-
-
-  .hero-dashboard-text p {
-    font-size: 8px;
-  }
-
-
-  .hero-dashboard-actions {
-    flex-wrap: wrap;
-
-    gap: 10px;
-  }
-
-
-  .hero-mini-info {
-    font-size: 7px;
-  }
-
-
-  .hero-cici-area {
-    height: 175px;
-  }
-
-
-  .cici-speech {
-    right: 17%;
-  }
-
-}
-
-
-/* =====================================================
-   REDUCE MOTION
-===================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-
-  .hero-dashboard *,
-  .hero-dashboard::before,
-  .hero-dashboard::after {
-    animation: none !important;
-
-    transition: none !important;
-  }
-
 }

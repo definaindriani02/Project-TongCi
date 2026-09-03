@@ -6,8 +6,7 @@ import { motion } from "framer-motion";
 import {
   Menu,
   Bell,
-  ChevronDown,
-  Sparkles,
+  Search,
 } from "lucide-react";
 
 export default function Header({
@@ -17,43 +16,47 @@ export default function Header({
     <header className="dashboard-header">
 
       {/* ==========================================
-          MOBILE MENU
+          LEFT
       ========================================== */}
 
-      <motion.button
-        className="header-menu-button"
-        onClick={onMenuClick}
-        whileTap={{ scale: 0.92 }}
-        aria-label="Buka menu"
-      >
-        <Menu size={20} />
-      </motion.button>
+      <div className="header-left">
 
+        <motion.button
+          type="button"
+          className="header-menu-button"
+          onClick={onMenuClick}
+          whileTap={{ scale: 0.92 }}
+          aria-label="Buka atau tutup sidebar"
+        >
+          <Menu size={18} />
+        </motion.button>
 
-      {/* ==========================================
-          WELCOME
-      ========================================== */}
-
-      <div className="header-welcome">
-
-        <span className="header-mini-label">
-          TONCCI DASHBOARD
-        </span>
-
-        <h1>
-          Hai, Sobat Bumi! 🌱
+        <h1 className="header-page-title">
+          Dashboard
         </h1>
-
-        <p>
-          Yuk lanjutkan perjalanan kecilmu
-          untuk bumi yang lebih baik.
-        </p>
 
       </div>
 
 
       {/* ==========================================
-          RIGHT SIDE
+          SEARCH
+      ========================================== */}
+
+      <div className="header-search">
+
+        <Search size={13} />
+
+        <input
+          type="text"
+          placeholder="Cari fitur, tips, informasi..."
+          aria-label="Pencarian"
+        />
+
+      </div>
+
+
+      {/* ==========================================
+          RIGHT ACTIONS
       ========================================== */}
 
       <div className="header-actions">
@@ -61,12 +64,13 @@ export default function Header({
         {/* NOTIFICATION */}
 
         <motion.button
+          type="button"
           className="header-notification"
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.94 }}
           aria-label="Notifikasi"
         >
-          <Bell size={18} />
+          <Bell size={16} />
 
           <span className="notification-dot" />
         </motion.button>
@@ -76,11 +80,11 @@ export default function Header({
 
         <motion.div
           className="header-profile"
-          whileHover={{ y: -2 }}
+          whileHover={{ y: -1 }}
         >
 
           <div className="header-avatar">
-            <span>🌱</span>
+            A
           </div>
 
           <div className="header-profile-info">
@@ -94,11 +98,6 @@ export default function Header({
             </span>
 
           </div>
-
-          <ChevronDown
-            size={15}
-            className="header-chevron"
-          />
 
         </motion.div>
 
