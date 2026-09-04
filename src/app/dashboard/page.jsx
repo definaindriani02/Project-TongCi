@@ -10,7 +10,6 @@ import StatistikDashboard from "@/components/dashboard/StatistikDashboard";
 import AktivitasTerkini from "@/components/dashboard/AktivitasTerkini";
 import Tips3R from "@/components/dashboard/Tips3R";
 import Reward from "@/components/dashboard/Reward";
-import AsistenAI from "@/components/dashboard/AsistenAI";
 
 import { supabase } from "@/lib/supabase";
 
@@ -128,20 +127,6 @@ export default function Dashboard() {
             loading={loading}
           />
 
-          {/* AKTIVITAS & ASISTEN AI CARD */}
-          <section className="dashboard-activity-grid">
-            <AktivitasTerkini scans={recentScans} loading={loading} />
-
-            <div className="dashboard-ai-card">
-              <div className="dashboard-ai-icon">✨</div>
-              <div>
-                <span>ASISTEN AI</span>
-                <h3>Tanya CiCi 💚</h3>
-                <p>Butuh bantuan tentang sampah? CiCi siap membantu.</p>
-              </div>
-            </div>
-          </section>
-
           {/* TIPS 3R */}
           <Tips3R />
 
@@ -149,9 +134,6 @@ export default function Dashboard() {
           <Reward points={profile?.points || 0} loading={loading} />
         </main>
       </div>
-
-      {/* FLOATING CICI */}
-      <AsistenAI />
     </div>
   );
 }

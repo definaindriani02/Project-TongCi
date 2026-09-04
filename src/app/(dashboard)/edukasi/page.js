@@ -188,18 +188,6 @@ export default function EdukasiPage() {
           </ul>
         </div>
       </section>
-
-      {/* Floating Action AI Button */}
-      <button 
-        type="button"
-        suppressHydrationWarning
-        className="fixed bottom-6 right-6 bg-[#22C55E] text-white pl-4 pr-6 py-3 rounded-full shadow-lg flex items-center gap-4 hover:bg-[#1ea850] hover:scale-105 transition-all duration-200 font-bold text-xs border border-[#22C55E]/40 z-50 group cursor-pointer"
-      >
-        <div className="w-8 h-8 relative flex items-center justify-center shrink-0">
-          <Image src="/logo.png" alt="CiCi float" fill sizes="32px" className="object-contain scale-[1.8] origin-center" />
-        </div>
-        <span className="tracking-wide">CiCi Tanya AI</span>
-      </button>
     </div>
   );
 }
