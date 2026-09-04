@@ -24,9 +24,9 @@ export default function StatistikPage() {
         return;
       }
 
-      // Ambil data riwayat scan pengguna secara realtime dari Supabase
+      // MENGAMBIL DATA DARI TABEL statistik (sesuai kolom category & weight)
       const { data: scans, error } = await supabase
-        .from("scans")
+        .from("statistik")
         .select("category, weight, created_at")
         .eq("user_id", session.user.id);
 
@@ -38,8 +38,10 @@ export default function StatistikPage() {
       let org = 0, plas = 0, ker = 0, log = 0;
 
       scans.forEach((scan) => {
-        const w = scan.weight || 0.5; // Default berat jika belum terekam rinci
+        // Ambil berat aktual dari kolom weight (default ke 0.5 jika kosong/null)
+        const w = parseFloat(scan.weight) || 0.5; 
         const cat = scan.category?.toLowerCase() || "";
+        
         if (cat.includes("organik")) org += w;
         else if (cat.includes("plastik")) plas += w;
         else if (cat.includes("kertas")) ker += w;
@@ -76,10 +78,10 @@ export default function StatistikPage() {
 
   return (
     <div className="space-y-6 max-w-7xl w-full mx-auto pb-12">
-      {/* Main Section dengan Nuansa Hijau TongCi */}
+      {/* Main Section */}
       <section className="bg-white rounded-3xl p-6 md:p-10 border border-[#22C55E]/20 shadow-sm relative overflow-hidden">
         
-        {/* Efek Glow Tipis */}
+        {/* Efek Glow */}
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#22C55E]/5 rounded-full blur-3xl pointer-events-none"></div>
 
         {/* Header */}
@@ -135,7 +137,6 @@ export default function StatistikPage() {
 
               {/* Bar Komposisi */}
               <div className="space-y-4 text-xs font-medium">
-                
                 {/* Organik */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-slate-700">
