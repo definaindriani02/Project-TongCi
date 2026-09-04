@@ -83,7 +83,7 @@ export default function KlasifikasiAI() {
       canvas.height = videoRef.current.videoHeight || 480;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      const base64Image = canvas.toDataURL("image/jpeg");
+      const base64Image = canvas.toDataURL("image/jpeg", 0.8); // Kompresi ringan agar upload lebih cepat
       
       stopCamera();
       setSelectedImage(base64Image);
@@ -112,10 +112,11 @@ export default function KlasifikasiAI() {
     }
   };
 
-  // SEND TO GEMINI API
+  // PERBAIKAN: SEND TO GEMINI API
   const analyzeImage = async (base64Img) => {
     setScanState("analyzing");
     setErrorMsg("");
+
     try {
       const res = await fetch("/api/scan", {
         method: "POST",
@@ -125,16 +126,18 @@ export default function KlasifikasiAI() {
         body: JSON.stringify({ image: base64Img }),
       });
 
+      // Parsing aman untuk menangkap detail error dari backend
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        throw new Error("Gagal menganalisa gambar. Server merespon dengan status " + res.status);
+        throw new Error(data.error || "Gagal menganalisa gambar. Server merespon dengan status " + res.status);
       }
 
-      const data = await res.json();
       setScanResult(data);
       setScanState("result");
     } catch (err) {
-      console.error(err);
-      setErrorMsg("Gagal melakukan analisis gambar: " + err.message);
+      console.error("Analysis Error:", err);
+      setErrorMsg(err.message || "Terjadi kesalahan saat klasifikasi gambar.");
       setScanState("idle");
     }
   };

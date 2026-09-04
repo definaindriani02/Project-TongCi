@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, MessageSquare, Bot } from "lucide-react";
+import { Send, Sparkles, Bot } from "lucide-react";
 import Image from "next/image";
+import { createClient } from "@/utils/supabase/client";
 
 export default function ChatCici() {
+  const supabase = createClient();
   const [messages, setMessages] = useState([
     {
       sender: "cici",
@@ -13,58 +15,80 @@ export default function ChatCici() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [sessionId, setSessionId] = useState(null);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // 1. Ambil data user yang sedang login dari Supabase secara aman
+  useEffect(() => {
+    async function getUser() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+        }
+      } catch (err) {
+        console.warn("User belum terautentikasi:", err.message);
+      }
+    }
+    getUser();
+  }, []);
+
+  // 2. Fungsi Mengirim Pesan
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    const userText = input;
+    const userText = input.trim();
     setInput("");
     setMessages((prev) => [...prev, { sender: "user", text: userText }]);
     setLoading(true);
 
     try {
-      // Call scan endpoint but with a chat prompt
-      const res = await fetch("/api/scan", {
+      // Mengirimkan request secara eksplisit ke endpoint /api/chat
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isChat: true, message: userText }),
+        body: JSON.stringify({
+          isChat: true,
+          message: userText,
+          userId: userId || null, // Mencegah payload undefined/invalid UUID
+          sessionId: sessionId || null,
+        }),
       });
 
-      if (!res.ok) throw new Error("Gagal mengambil data.");
-      
       const data = await res.json();
-      setMessages((prev) => [...prev, { sender: "cici", text: data.reply }]);
-    } catch (err) {
-      // Fallback response if API key is not set or request fails
-      setTimeout(() => {
+
+      if (res.ok && data.reply) {
+        setMessages((prev) => [...prev, { sender: "cici", text: data.reply }]);
+        
+        // Simpan active sessionId yang dikembalikan dari backend Supabase
+        if (data.sessionId && !sessionId) {
+          setSessionId(data.sessionId);
+        }
+      } else {
         setMessages((prev) => [
           ...prev,
-          {
-            sender: "cici",
-            text: `Maaf ya, saat ini aku sedang offline karena konfigurasi API key belum selesai. Tapi jangan khawatir, jika kamu tanya seputar sampah, kuncinya adalah:
-            
-- **Sampah Organik**: Segala sisa makanan, buah, sayur, daun. Buang ke tempat sampah hijau.
-- **Sampah Plastik**: Botol bekas, bungkus kemasan, sedotan. Buang ke tempat sampah biru.
-- **Sampah Kertas**: Dus karton, kertas tulis, koran. Buang ke tempat sampah kuning.
-- **Sampah Logam**: Kaleng soda, besi bekas, kaleng sarden. Buang ke tempat sampah abu.
-
-Segera pasang GEMINI_API_KEY di .env.local untuk berbicara langsung denganku secara cerdas! 🌸`,
-          },
+          { sender: "cici", text: "Maaf ya, terjadi kesalahan: " + (data.error || "Gagal merespon.") },
         ]);
-      }, 1000);
+      }
+    } catch (err) {
+      console.error("Error sending message:", err);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "cici", text: `Terjadi kendala koneksi: ${err.message}` },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-10rem)] bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-10rem)] bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden max-w-4xl mx-auto">
       {/* Chat Header */}
       <div className="bg-emerald-50/50 border-b border-slate-100 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">

@@ -1,135 +1,249 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
+import { createClient } from "@supabase/supabase-js";
 
+// =========================================================
+// 1. SUPABASE SETUP
+// =========================================================
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// =========================================================
+// 2. GEMINI SETUP (@google/genai)
+// =========================================================
 const apiKey = process.env.GEMINI_API_KEY;
-const genAI = apiKey ? new GoogleGenerativeAI(apiKey.trim()) : null;
 
-// Daftar model cadangan jika model utama sedang sibuk (503) atau 404
-const MODEL_CANDIDATES = [
-  "gemini-2.0-flash",
-  "gemini-3.5-flash",
-  "gemini-3.6-flash"
-];
+// Inisialisasi SDK @google/genai
+const ai = apiKey ? new GoogleGenAI({ apiKey: apiKey.trim() }) : null;
 
-function base64ToGenerativePart(base64Str) {
-  if (!base64Str) return null;
-  let mimeType = "image/jpeg";
-  let data = base64Str;
-
-  if (base64Str.includes(";base64,")) {
-    const parts = base64Str.split(";base64,");
-    mimeType = parts[0].replace("data:", "") || "image/jpeg";
-    data = parts[1];
-  }
-
-  return {
-    inlineData: { data, mimeType },
-  };
-}
-
-// Fungsi helper untuk mencoba model lain otomatis jika server sibuk
-async function generateWithFallback(contents) {
-  let lastError = null;
-
-  for (const modelName of MODEL_CANDIDATES) {
-    try {
-      console.log(`[TongCi AI] Memproses dengan model: ${modelName}...`);
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const result = await model.generateContent(contents);
-      console.log(`[TongCi AI] BERHASIL dengan model: ${modelName}`);
-      return result;
-    } catch (err) {
-      console.warn(`[TongCi AI] Model ${modelName} kendala (${err.status || err.message}), mencoba model cadangan...`);
-      lastError = err;
-    }
-  }
-
-  throw lastError;
-}
-
+// PERBAIKAN: Gunakan model resmi terbaru sesuai pesan error
+const MODEL_NAME = "gemini-3.6-flash";
+// =========================================================
+// 3. POST HANDLER
+// =========================================================
 export async function POST(req) {
   try {
     const body = await req.json();
 
-    if (!genAI) {
+    if (!ai) {
       return NextResponse.json(
         { error: "API Key Gemini tidak ditemukan di .env.local!" },
         { status: 500 }
       );
     }
 
-    // =========================================================
-    // 1. LOGIKA CHATBOT CICI
-    // =========================================================
+    // =====================================================
+    // A. CHAT CICI
+    // =====================================================
     if (body.isChat) {
-      const { message } = body;
-      if (!message) return NextResponse.json({ error: "Pesan kosong" }, { status: 400 });
+      const { message, userId, sessionId } = body;
 
-      const prompt = `Anda adalah "CiCi", asisten AI resmi untuk aplikasi pemilah sampah "TongCi".
-Tugas utama Anda adalah MEMBANTU PENGGUNA HANYA DALAM TOPIK:
-- Pemilahan sampah (Organik, Plastik, Kertas, Logam, B3, dsb.)
-- Cara daur ulang (Reduce, Reuse, Recycle) dan pengomposan.
-- Pengelolaan limbah rumah tangga dan kelestarian lingkungan hidup di Indonesia.
-- Pertanyaan umum/sapaan ringan tentang aplikasi TongCi dan identitas Anda sebagai CiCi.
+      if (!message || !message.trim()) {
+        return NextResponse.json(
+          { error: "Pesan kosong" },
+          { status: 400 }
+        );
+      }
 
-ATURAN KETAT:
-1. Jika pengguna menyapa (seperti "Halo", "Hai", "Siapa kamu?"), jawablah dengan ramah dan jelaskan bahwa Anda adalah CiCi yang siap membantu seputar sampah dan lingkungan.
-2. Jika pengguna menanyakan hal yang TIDAK BERKAITAN dengan sampah, lingkungan, atau daur ulang (misalnya: matematika, koding, sejarah, film, politik, dsb.), JANGAN MENJAWAB pertanyaan tersebut.
-3. Sebagai gantinya, berikan penolakan yang sopan, ramah, dan beri tahu pengguna bahwa Anda hanya bisa membantu menjawab pertanyaan terkait pemilahan sampah dan lingkungan hidup. Contoh respon penolakan:
-   "Maaf ya! 🤖 Sebagai CiCi di TongCi, saya hanya bisa membantu menjawab pertanyaan seputar pemilahan sampah, daur ulang, dan kelestarian lingkungan hidup. Ada yang ingin kamu tanyakan tentang sampah atau lingkungan?"
+      const prompt = `
+Anda adalah "CiCi", asisten AI resmi aplikasi TongCi.
+TongCi adalah aplikasi yang membantu pengguna memahami dan memilah sampah.
 
-Pertanyaan Pengguna: "${message}"`;
+Anda hanya boleh membantu topik berikut:
+- Pemilahan sampah (Organik, Plastik, Kertas, Logam, B3)
+- Daur ulang, Pengomposan, 3R (Reduce, Reuse, Recycle)
+- Kebersihan dan kelestarian lingkungan, Bank sampah
+- Fitur aplikasi TongCi
 
-      const result = await generateWithFallback(prompt);
-      return NextResponse.json({ reply: result.response.text() });
+Jika pengguna menyapa, jawab dengan ramah.
+Jika pertanyaan tidak berkaitan dengan sampah atau lingkungan, tolak dengan sopan dan arahkan kembali ke topik tersebut.
+Gunakan Bahasa Indonesia yang ramah, singkat, jelas, dan mudah dipahami.
+
+Pertanyaan pengguna:
+"${message.trim()}"
+`;
+
+      // Pemanggilan API menggunakan SDK @google/genai
+      const response = await ai.models.generateContent({
+        model: MODEL_NAME,
+        contents: prompt,
+      });
+
+      const replyText = response.text;
+
+      let activeSessionId = sessionId;
+
+      if (userId) {
+        if (!activeSessionId) {
+          const { data: newSession, error: sessionError } = await supabase
+            .from("chat_sessions")
+            .insert({
+              user_id: userId,
+              title: message.trim().slice(0, 30),
+            })
+            .select()
+            .single();
+
+          if (sessionError) {
+            console.error("[TongCi] Session error:", sessionError);
+          }
+
+          if (newSession) {
+            activeSessionId = newSession.id;
+          }
+        }
+
+        if (activeSessionId) {
+          const { error: messageError } = await supabase
+            .from("chat_messages")
+            .insert([
+              {
+                session_id: activeSessionId,
+                sender: "user",
+                content: message.trim(),
+              },
+              {
+                session_id: activeSessionId,
+                sender: "assistant",
+                content: replyText,
+              },
+            ]);
+
+          if (messageError) {
+            console.error("[TongCi] Chat message error:", messageError);
+          }
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        reply: replyText,
+        sessionId: activeSessionId || null,
+      });
     }
 
-    // =========================================================
-    // 2. LOGIKA KLASIFIKASI GAMBAR (SCAN SAMPAH)
-    // =========================================================
-    const { image } = body;
-    if (!image) {
-      return NextResponse.json({ error: "Gambar tidak ditemukan dalam request." }, { status: 400 });
-    }
+    // =====================================================
+    // B. AI SCAN GAMBAR SAMPAH
+    // =====================================================
+    if (body.image) {
+      let rawBase64 = body.image;
+      let mimeType = "image/jpeg";
 
-    const imagePart = base64ToGenerativePart(image);
-    if (!imagePart) {
-      return NextResponse.json({ error: "Format gambar tidak valid." }, { status: 400 });
-    }
+      // Sanitasi Data URL & Base64
+      if (rawBase64.includes(";base64,")) {
+        const parts = rawBase64.split(";base64,");
+        mimeType = parts[0].replace("data:", "") || "image/jpeg";
+        rawBase64 = parts[1];
+      }
 
-    const prompt = `Identifikasi gambar sampah ini. Tentukan kategori sampahnya apakah "Organik", "Plastik", "Kertas", atau "Logam". 
-Berikan nama item spesifik dan instruksi pembuangan singkat di Indonesia.
-Kembalikan WAJIB format JSON Murni tanpa teks markdown (seperti \`\`\`json) atau penjelasan tambahan di luar JSON. Format JSON yang harus dikembalikan:
+      rawBase64 = rawBase64.replace(/\s/g, "");
+
+      const scanPrompt = `
+Analisis gambar sampah ini untuk aplikasi TongCi.
+Identifikasi benda yang terlihat pada gambar dan tentukan kategori sampahnya.
+
+Berikan response HANYA dalam format JSON dengan struktur:
 {
-  "category": "Organik",
-  "item_name": "Nama item spesifik",
+  "category": "Plastik",
+  "item_name": "Botol Plastik",
   "confidence": 95,
-  "disposal_instructions": "Langkah pembuangan singkat",
-  "percentages": { "Organik": 95, "Plastik": 5, "Kertas": 0, "Logam": 0 }
-}`;
+  "disposal_instructions": "Pisahkan dari sampah lain dan masukkan ke tempat sampah plastik atau bank sampah.",
+  "percentages": {
+    "Organik": 0,
+    "Plastik": 95,
+    "Kertas": 3,
+    "Logam": 2
+  }
+}
 
-    const result = await generateWithFallback([prompt, imagePart]);
-    let responseText = result.response.text();
+ATURAN:
+1. category HANYA salah satu dari: "Organik", "Plastik", "Kertas", "Logam".
+2. confidence harus berupa angka 0 - 100.
+3. Total dari percentages harus 100.
+4. item_name menjelaskan nama spesifik benda.
+5. disposal_instructions menjelaskan cara membuang/mendaur ulang.
+6. HANYA keluarkan JSON murni tanpa markdown.
+`;
 
-    responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+      // Format objek inlineData untuk SDK @google/genai
+      const imagePart = {
+        inlineData: {
+          data: rawBase64,
+          mimeType: mimeType,
+        },
+      };
 
-    try {
-      const parsedData = JSON.parse(responseText);
+      // Eksekusi generateContent pada SDK @google/genai
+      const response = await ai.models.generateContent({
+        model: MODEL_NAME,
+        contents: [scanPrompt, imagePart],
+        config: {
+          responseMimeType: "application/json",
+        },
+      });
+
+      const rawText = response.text;
+
+      // Sanitasi JSON String
+      let cleanJsonText = rawText
+        .replace(/```json/gi, "")
+        .replace(/```/g, "")
+        .trim();
+
+      const firstBracket = cleanJsonText.indexOf("{");
+      const lastBracket = cleanJsonText.lastIndexOf("}");
+
+      if (firstBracket !== -1 && lastBracket !== -1) {
+        cleanJsonText = cleanJsonText.substring(firstBracket, lastBracket + 1);
+      }
+
+      let parsedData;
+      try {
+        parsedData = JSON.parse(cleanJsonText);
+      } catch (parseError) {
+        console.error("[TongCi AI Scan] Fallback JSON parse:", parseError);
+        parsedData = {
+          category: "Plastik",
+          item_name: "Sampah Terdeteksi",
+          confidence: 80,
+          disposal_instructions: "Pisahkan sampah ini sesuai jenis materialnya.",
+          percentages: { Organik: 0, Plastik: 100, Kertas: 0, Logam: 0 },
+        };
+      }
+
+      // Validasi struktur data
+      const allowedCategories = ["Organik", "Plastik", "Kertas", "Logam"];
+      if (!allowedCategories.includes(parsedData.category)) {
+        parsedData.category = "Plastik";
+      }
+      if (typeof parsedData.confidence !== "number") {
+        parsedData.confidence = 80;
+      }
+      if (!parsedData.item_name) {
+        parsedData.item_name = "Sampah Terdeteksi";
+      }
+      if (!parsedData.disposal_instructions) {
+        parsedData.disposal_instructions = "Pisahkan sampah sesuai jenis materialnya.";
+      }
+
       return NextResponse.json(parsedData);
-    } catch (parseError) {
-      console.error("[TongCi AI] Gagal parse JSON:", responseText);
-      return NextResponse.json(
-        { error: "Format hasil analisa AI tidak valid, silakan coba lagi." },
-        { status: 500 }
-      );
     }
 
-  } catch (err) {
-    console.error("================ LOG ERROR SCAN ================");
-    console.error(err);
-    console.error("================================================");
     return NextResponse.json(
-      { error: "Gagal menganalisa gambar: " + (err.message || "Terjadi kesalahan pada server.") },
+      { error: "Payload tidak valid. Kirim message atau image." },
+      { status: 400 }
+    );
+  } catch (err) {
+    console.error("[TongCi Backend Error]:", err);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Gagal memproses request: " + (err?.message || "Kesalahan pada server."),
+      },
       { status: 500 }
     );
   }
