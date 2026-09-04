@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, Bot } from "lucide-react";
+import { Send, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 
-export default function ChatCici() {
+export default function ChatPage() {
   const supabase = createClient();
   const [messages, setMessages] = useState([
     {
@@ -19,15 +19,18 @@ export default function ChatCici() {
   const [sessionId, setSessionId] = useState(null);
   const chatEndRef = useRef(null);
 
+  // Auto scroll ke bawah saat ada pesan baru
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 1. Ambil data user yang sedang login dari Supabase secara aman
+  // 1. Ambil data user yang sedang login dari Supabase
   useEffect(() => {
     async function getUser() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           setUserId(user.id);
         }
@@ -36,7 +39,7 @@ export default function ChatCici() {
       }
     }
     getUser();
-  }, []);
+  }, [supabase]);
 
   // 2. Fungsi Mengirim Pesan
   const handleSend = async (e) => {
@@ -49,14 +52,14 @@ export default function ChatCici() {
     setLoading(true);
 
     try {
-      // Mengirimkan request secara eksplisit ke endpoint /api/chat
+      // Mengirim request ke API Backend (/api/chat)
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           isChat: true,
           message: userText,
-          userId: userId || null, // Mencegah payload undefined/invalid UUID
+          userId: userId || null,
           sessionId: sessionId || null,
         }),
       });
@@ -65,15 +68,20 @@ export default function ChatCici() {
 
       if (res.ok && data.reply) {
         setMessages((prev) => [...prev, { sender: "cici", text: data.reply }]);
-        
-        // Simpan active sessionId yang dikembalikan dari backend Supabase
+
+        // Simpan sessionId aktif yang dikirimkan backend
         if (data.sessionId && !sessionId) {
           setSessionId(data.sessionId);
         }
       } else {
         setMessages((prev) => [
           ...prev,
-          { sender: "cici", text: "Maaf ya, terjadi kesalahan: " + (data.error || "Gagal merespon.") },
+          {
+            sender: "cici",
+            text:
+              "Maaf ya, terjadi kesalahan: " +
+              (data.error || "Gagal merespon."),
+          },
         ]);
       }
     } catch (err) {
@@ -93,14 +101,22 @@ export default function ChatCici() {
       <div className="bg-emerald-50/50 border-b border-slate-100 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 relative bg-white border border-emerald-100 rounded-full flex items-center justify-center shrink-0">
-            <Image src="/logo.png" alt="CiCi" fill sizes="40px" className="object-contain p-1" />
+            <Image
+              src="/logo.png"
+              alt="CiCi"
+              fill
+              sizes="40px"
+              className="object-contain p-1"
+            />
           </div>
           <div>
             <h4 className="font-bold text-xs text-slate-800 flex items-center gap-1.5">
               CiCi - Tanya AI
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             </h4>
-            <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">Siap membantumu pilah sampah</p>
+            <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">
+              Siap membantumu pilah sampah
+            </p>
           </div>
         </div>
         <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
@@ -117,21 +133,29 @@ export default function ChatCici() {
               msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
             }`}
           >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 shadow-sm ${
-              msg.sender === "user" ? "bg-emerald-500 text-white" : "bg-white border border-slate-100"
-            }`}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 shadow-sm ${
+                msg.sender === "user"
+                  ? "bg-emerald-500 text-white"
+                  : "bg-white border border-slate-100"
+              }`}
+            >
               {msg.sender === "user" ? "👤" : "🤖"}
             </div>
-            
-            <div className={`p-3 rounded-2xl text-xs leading-relaxed whitespace-pre-line font-medium shadow-sm border ${
-              msg.sender === "user" 
-                ? "bg-emerald-500 text-white border-emerald-600 rounded-tr-none" 
-                : "bg-white text-slate-800 border-slate-100 rounded-tl-none"
-            }`}>
+
+            <div
+              className={`p-3 rounded-2xl text-xs leading-relaxed whitespace-pre-line font-medium shadow-sm border ${
+                msg.sender === "user"
+                  ? "bg-emerald-500 text-white border-emerald-600 rounded-tr-none"
+                  : "bg-white text-slate-800 border-slate-100 rounded-tl-none"
+              }`}
+            >
               {msg.text}
             </div>
           </div>
         ))}
+
+        {/* Indicator Loading */}
         {loading && (
           <div className="flex items-start gap-3 max-w-[80%]">
             <div className="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center text-sm shrink-0 shadow-sm animate-pulse">
@@ -151,7 +175,10 @@ export default function ChatCici() {
       </div>
 
       {/* Input Form */}
-      <form onSubmit={handleSend} className="p-4 border-t border-slate-100 flex gap-2 items-center bg-white">
+      <form
+        onSubmit={handleSend}
+        className="p-4 border-t border-slate-100 flex gap-2 items-center bg-white"
+      >
         <input
           type="text"
           value={input}
