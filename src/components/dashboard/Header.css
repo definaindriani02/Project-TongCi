@@ -1,0 +1,439 @@
+/* =====================================================
+   TONCCI DASHBOARD HEADER
+===================================================== */
+
+.dashboard-header {
+  position: sticky;
+  top: 0;
+
+  z-index: 80;
+
+  min-height: 64px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 10px 28px;
+
+  background: rgba(255, 255, 255, 0.90);
+
+  border-bottom: 1px solid #e5eee3;
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+
+/* =====================================================
+   LEFT AREA
+===================================================== */
+
+.header-left {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  flex-shrink: 0;
+}
+
+
+/* =====================================================
+   HAMBURGER
+===================================================== */
+
+.header-menu-button {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 10px;
+
+  color: #4caf50;
+
+  background: #f4faF2;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.header-menu-button:hover {
+  background: #e8f6e3;
+
+  transform: scale(1.04);
+}
+
+.header-menu-button:active {
+  transform: scale(0.94);
+}
+
+
+/* =====================================================
+   PAGE TITLE
+===================================================== */
+
+.header-page-title {
+  margin: 0;
+
+  color: #263a2d;
+
+  font-size: 15px;
+
+  font-weight: 900;
+
+  letter-spacing: -0.02em;
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.header-search {
+  position: absolute;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  width: min(310px, 32vw);
+
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 0 13px;
+
+  border: 1px solid #e1eee0;
+
+  border-radius: 12px;
+
+  background: #f8fcf7;
+
+  color: #69b873;
+}
+
+.header-search svg {
+  flex-shrink: 0;
+}
+
+.header-search input {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #405247;
+
+  font-size: 9px;
+
+  font-family: inherit;
+}
+
+.header-search input::placeholder {
+  color: #9aac9f;
+}
+
+
+/* =====================================================
+   ACTIONS
+===================================================== */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-left: auto;
+
+  flex-shrink: 0;
+}
+
+
+/* =====================================================
+   NOTIFICATION
+===================================================== */
+
+.header-notification {
+  position: relative;
+
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid #e4ece1;
+
+  border-radius: 10px;
+
+  color: #607068;
+
+  background: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.header-notification:hover {
+  color: #4caf50;
+
+  background: #f6fbf4;
+
+  border-color: #d5e8d1;
+}
+
+
+/* =====================================================
+   NOTIFICATION DOT
+===================================================== */
+
+.notification-dot {
+  position: absolute;
+
+  top: 6px;
+  right: 6px;
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #ff6fa7;
+
+  border: 1.5px solid #ffffff;
+}
+
+
+/* =====================================================
+   PROFILE
+===================================================== */
+
+.header-profile {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 3px 9px 3px 3px;
+
+  border: 1px solid #e4ece1;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.header-profile:hover {
+  background: #f9fcf8;
+
+  border-color: #d5e8d1;
+}
+
+
+/* =====================================================
+   AVATAR
+===================================================== */
+
+.header-avatar {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #4caf50,
+      #8bc34a
+    );
+
+  font-size: 9px;
+
+  font-weight: 900;
+}
+
+
+/* =====================================================
+   PROFILE INFO
+===================================================== */
+
+.header-profile-info {
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 65px;
+}
+
+.header-profile-info strong {
+  color: #35463b;
+
+  font-size: 8px;
+
+  font-weight: 900;
+}
+
+.header-profile-info span {
+  margin-top: 2px;
+
+  color: #9aa69e;
+
+  font-size: 6px;
+
+  font-weight: 700;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 900px) {
+
+  .dashboard-header {
+    padding: 10px 22px;
+  }
+
+  .header-search {
+    position: static;
+
+    transform: none;
+
+    width: 230px;
+
+    margin-left: auto;
+  }
+
+  .header-actions {
+    margin-left: 0;
+  }
+
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 768px) {
+
+  .dashboard-header {
+    min-height: 58px;
+
+    padding: 9px 15px;
+
+    gap: 8px;
+  }
+
+  .header-left {
+    gap: 7px;
+  }
+
+  .header-menu-button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .header-page-title {
+    font-size: 12px;
+  }
+
+  .header-search {
+    flex: 1;
+
+    width: auto;
+
+    height: 34px;
+
+    margin-left: 5px;
+  }
+
+  .header-profile-info {
+    display: none;
+  }
+
+  .header-profile {
+    padding: 2px;
+
+    border-radius: 10px;
+  }
+
+  .header-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .header-notification {
+    width: 34px;
+    height: 34px;
+  }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 480px) {
+
+  .dashboard-header {
+    padding: 8px 11px;
+  }
+
+  .header-page-title {
+    font-size: 11px;
+  }
+
+  .header-search {
+    display: none;
+  }
+
+  .header-menu-button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .header-notification {
+    width: 33px;
+    height: 33px;
+  }
+
+}

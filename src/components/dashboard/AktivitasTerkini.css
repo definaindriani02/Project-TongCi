@@ -1,0 +1,295 @@
+/* =====================================================
+   TONGCI - AKTIVITAS TERKINI
+===================================================== */
+
+.aktivitas-terkini-container {
+  background: #ffffff;
+  border: 1px solid #e5ece3;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(47, 91, 53, 0.045);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.aktivitas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.aktivitas-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.aktivitas-title-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #eff9e9;
+  color: #4caf50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aktivitas-header-title h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #294032;
+  letter-spacing: -0.02em;
+}
+
+.aktivitas-header-title p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #88968d;
+}
+
+.btn-see-all {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #4caf50;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.btn-see-all:hover {
+  background: #f2faec;
+}
+
+/* =====================================================
+   LIST ITEMS
+===================================================== */
+
+.aktivitas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.aktivitas-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #f0f4ef;
+  background: #fafcf9;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.aktivitas-item:hover {
+  border-color: #dcedd4;
+  background: #ffffff;
+  transform: translateX(3px);
+}
+
+.item-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2ebd0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #293d30;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 11px;
+  color: #88968d;
+}
+
+.meta-dot {
+  color: #cbd5ce;
+}
+
+.item-confidence {
+  color: #4b914c;
+  font-weight: 600;
+}
+
+.item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* BADGES */
+
+.category-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-organik {
+  background: #eaf6e8;
+  color: #3b823e;
+  border: 1px solid #cce8c9;
+}
+
+.badge-anorganik {
+  background: #eaf3fa;
+  color: #2b70b8;
+  border: 1px solid #c9e0f5;
+}
+
+.badge-b3 {
+  background: #fdeee8;
+  color: #d9532f;
+  border: 1px solid #f7cebe;
+}
+
+.badge-default {
+  background: #f0f3f1;
+  color: #637368;
+}
+
+.item-points {
+  font-size: 12px;
+  font-weight: 800;
+  color: #294032;
+}
+
+/* =====================================================
+   EMPTY STATE
+===================================================== */
+
+.aktivitas-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  background: #fafcf9;
+  border: 1px dashed #d5e2d2;
+  border-radius: 14px;
+  margin: auto 0;
+}
+
+.empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #eef7eb;
+  color: #6b8273;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.aktivitas-empty h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #294032;
+}
+
+.aktivitas-empty p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #88968d;
+  max-width: 240px;
+  line-height: 1.4;
+}
+
+/* =====================================================
+   SKELETON ANIMATION
+===================================================== */
+
+.skeleton-item {
+  border-color: #f0f4ef;
+  pointer-events: none;
+}
+
+.skeleton-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #eaf0eb;
+  animation: skeletonShimmer 1.5s infinite;
+}
+
+.skeleton-text-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skeleton-text {
+  background: #eaf0eb;
+  border-radius: 4px;
+  animation: skeletonShimmer 1.5s infinite;
+}
+
+.skeleton-title {
+  width: 120px;
+  height: 14px;
+}
+
+.skeleton-subtitle {
+  width: 70px;
+  height: 10px;
+}
+
+.skeleton-badge {
+  width: 50px;
+  height: 20px;
+  border-radius: 999px;
+  background: #eaf0eb;
+  animation: skeletonShimmer 1.5s infinite;
+}
+
+@keyframes skeletonShimmer {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}

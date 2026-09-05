@@ -1,0 +1,307 @@
+/* =========================================================
+   TONGCI — HERO DASHBOARD (FULL IMPROVED & RESPONSIVE)
+========================================================= */
+
+.hero-dashboard {
+  position: relative;
+  width: 100%;
+  border: 1px solid #e2ecde;
+  border-radius: 24px;
+  overflow: hidden;
+  background: radial-gradient(
+      circle at 82% 20%,
+      rgba(139, 195, 74, 0.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 95% 90%,
+      rgba(255, 111, 167, 0.1)
+    ),
+    linear-gradient(110deg, #effae8 0%, #f8fcf3 48%, #fff6fa 100%);
+  box-shadow: 0 10px 30px rgba(53, 100, 55, 0.06);
+  margin-bottom: 24px;
+}
+
+/* =========================================================
+   BACKGROUND GLOWS
+========================================================= */
+.hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(20px);
+}
+
+.hero-glow-one {
+  width: 220px;
+  height: 220px;
+  top: -100px;
+  right: 100px;
+  background: rgba(139, 195, 74, 0.25);
+}
+
+.hero-glow-two {
+  width: 180px;
+  height: 180px;
+  bottom: -80px;
+  right: -20px;
+  background: rgba(255, 111, 167, 0.2);
+}
+
+/* =========================================================
+   CONTENT GRID
+========================================================= */
+.hero-dashboard-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  align-items: center;
+  gap: 24px;
+  padding: 32px 40px;
+}
+
+/* =========================================================
+   LEFT TEXT & BADGE
+========================================================= */
+.hero-dashboard-text {
+  max-width: 580px;
+}
+
+.hero-dashboard-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px 14px;
+  border: 1px solid #dbead4;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #436e49;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.hero-badge-icon {
+  font-size: 12px;
+}
+
+.hero-title {
+  margin: 0;
+  color: #1f3825;
+  font-size: clamp(26px, 2.5vw, 36px);
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.hero-title span {
+  color: #10b981;
+}
+
+.hero-subtitle {
+  margin: 12px 0 0 0;
+  color: #5d7363;
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+.hero-dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  color: white;
+  background: #10b981;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.28);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  background: #059669;
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  color: #2e7d32;
+  background: #ffffff;
+  border: 1.5px solid #d1e7dd;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+/* =========================================================
+   CICI MASCOT AREA & ANIMATIONS
+========================================================= */
+.hero-cici-area {
+  position: relative;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mascot-wrapper {
+  position: relative;
+  z-index: 3;
+  width: 170px;
+  height: 170px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Kunci ukuran gambar agar tidak melebar */
+.hero-mascot-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.08));
+  animation: floatMascot 3.5s ease-in-out infinite;
+}
+
+/* Speech Bubble */
+.cici-speech {
+  position: absolute;
+  z-index: 5;
+  top: 0px;
+  right: 15px;
+  padding: 6px 12px;
+  border: 1px solid #dbead4;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #2e7d32;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  animation: floatBubble 3.5s ease-in-out infinite;
+}
+
+.cici-speech::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  bottom: -5px;
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  border-right: 1px solid #dbead4;
+  border-bottom: 1px solid #dbead4;
+  transform: rotate(45deg);
+}
+
+/* Orbits */
+.cici-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(76, 175, 80, 0.25);
+  pointer-events: none;
+}
+
+.orbit-one {
+  width: 210px;
+  height: 210px;
+  animation: spinOrbit 20s linear infinite;
+}
+
+.orbit-two {
+  width: 150px;
+  height: 150px;
+  border-color: rgba(255, 111, 167, 0.25);
+  animation: spinOrbit 14s linear infinite reverse;
+}
+
+/* Floating Leaves */
+.hero-floating-leaf {
+  position: absolute;
+  z-index: 4;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.leaf-one {
+  top: 25px;
+  left: 20px;
+  animation: floatLeaf 4s ease-in-out infinite;
+}
+
+.leaf-two {
+  right: 25px;
+  bottom: 20px;
+  font-size: 16px;
+  animation: floatLeaf 3s ease-in-out infinite reverse;
+}
+
+/* =========================================================
+   KEYFRAMES ANIMATIONS
+========================================================= */
+@keyframes floatMascot {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes floatBubble {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes floatLeaf {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(12deg); }
+}
+
+@keyframes spinOrbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* =========================================================
+   RESPONSIVE MEDIA QUERIES
+========================================================= */
+@media (max-width: 850px) {
+  .hero-dashboard-content {
+    grid-template-columns: 1fr;
+    padding: 24px;
+    text-align: center;
+  }
+  .hero-dashboard-text {
+    max-width: 100%;
+  }
+  .hero-dashboard-actions {
+    justify-content: center;
+  }
+  .hero-cici-area {
+    height: 180px;
+  }
+}

@@ -1,0 +1,732 @@
+/* =======================================================
+   HOW IT WORKS
+======================================================= */
+
+.caraKerja{
+    position:relative;
+    overflow:hidden;
+    padding:120px 0;
+    background:
+    linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #f8fff9 100%
+    );
+}
+
+/* Background Decoration */
+
+.caraKerja::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:420px;
+
+    height:420px;
+
+    border-radius:50%;
+
+    background:#6BE675;
+
+    filter:blur(180px);
+
+    opacity:.10;
+
+    top:-180px;
+
+    left:-150px;
+
+    animation:floatBlobLeft 10s ease-in-out infinite alternate;
+
+}
+
+.caraKerja::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:320px;
+
+    height:320px;
+
+    border-radius:50%;
+
+    background:#A7F3D0;
+
+    filter:blur(150px);
+
+    opacity:.10;
+
+    right:-120px;
+
+    bottom:-120px;
+
+    animation:floatBlobRight 12s ease-in-out infinite alternate;
+
+}
+
+@keyframes floatBlobLeft{
+
+from{
+
+transform:translate(0,0);
+
+}
+
+to{
+
+transform:translate(40px,25px);
+
+}
+
+}
+
+@keyframes floatBlobRight{
+
+from{
+
+transform:translate(0,0);
+
+}
+
+to{
+
+transform:translate(-35px,-20px);
+
+}
+
+}
+
+/* =======================================================
+   CONTAINER
+======================================================= */
+
+.cara-container{
+
+    position:relative;
+
+    z-index:2;
+
+    max-width:1280px;
+
+    margin:auto;
+
+    padding:0 40px;
+
+}
+
+/* =======================================================
+   SECTION TAG
+======================================================= */
+
+.section-tag{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-bottom:18px;
+
+    color:#16A34A;
+
+    font-size:14px;
+
+    font-weight:700;
+
+    letter-spacing:2px;
+
+}
+
+.section-tag::before,
+.section-tag::after{
+
+    content:"";
+
+    width:45px;
+
+    height:2px;
+
+    border-radius:50px;
+
+    background:#BBF7D0;
+
+}
+
+/* =======================================================
+   TITLE
+======================================================= */
+
+.caraKerja h2{
+
+    text-align:center;
+
+    font-size:48px;
+
+    font-weight:800;
+
+    line-height:1.15;
+
+    letter-spacing:-1.5px;
+
+    color:#16223C;
+
+    margin-bottom:22px;
+
+}
+
+/* =======================================================
+   DESCRIPTION
+======================================================= */
+
+.section-desc{
+
+    max-width:700px;
+
+    margin:0 auto 90px;
+
+    text-align:center;
+
+    color:#64748B;
+
+    font-size:18px;
+
+    line-height:1.9;
+
+}
+/* =======================================================
+   TIMELINE
+======================================================= */
+
+.steps-wrapper{
+
+    position:relative;
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:32px;
+
+    margin-bottom:90px;
+
+}
+
+/* Garis Timeline */
+
+.line{
+
+    position:absolute;
+
+    top:34px;
+
+    left:12%;
+
+    width:76%;
+
+    height:4px;
+
+    border-radius:999px;
+
+    background:linear-gradient(
+        90deg,
+        #BBF7D0,
+        #22C55E,
+        #BBF7D0
+    );
+
+    box-shadow:
+    0 0 18px rgba(34,197,94,.18);
+
+    z-index:0;
+
+}
+
+/* =======================================================
+   STEP
+======================================================= */
+
+.step{
+
+    position:relative;
+
+    z-index:2;
+
+    text-align:center;
+
+    padding:20px;
+
+    border-radius:24px;
+
+    transition:
+    transform .35s ease,
+    box-shadow .35s ease,
+    background .35s ease;
+
+}
+
+/* Hover */
+
+.step:hover{
+
+    transform:translateY(-5px);
+
+}
+
+/* =======================================================
+   ICON
+======================================================= */
+
+.step-icon{
+
+    position:relative;
+
+    width:72px;
+
+    height:72px;
+
+    margin:0 auto 22px;
+
+    border-radius:22px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:26px;
+
+    background:rgba(255,255,255,.92);
+
+    backdrop-filter:blur(14px);
+
+    box-shadow:
+
+    0 18px 35px rgba(0,0,0,.08);
+
+    transition:
+    transform .35s ease,
+    box-shadow .35s ease,
+    background .35s ease,
+    color .35s ease;
+
+}
+
+/* Glow belakang icon */
+
+.step-icon::before{
+
+    content:"";
+
+    position:absolute;
+
+    inset:-8px;
+
+    border-radius:28px;
+
+    background:inherit;
+
+    filter:blur(22px);
+
+    opacity:.25;
+
+    z-index:-1;
+
+}
+
+/* Hover Icon */
+
+.step:hover .step-icon{
+
+    transform:scale(1.06);
+
+    box-shadow:
+
+    0 24px 45px rgba(34,197,94,.18);
+
+}
+
+/* =======================================================
+   WARNA ICON
+======================================================= */
+
+.green{
+
+    background:#EAFBF0;
+
+    color:#16A34A;
+
+}
+
+.blue{
+
+    background:#EEF7FF;
+
+    color:#0EA5E9;
+
+}
+
+.yellow{
+
+    background:#FFF8DF;
+
+    color:#F59E0B;
+
+}
+
+.pink{
+
+    background:#FFF1F8;
+
+    color:#EC4899;
+
+}
+
+/* =======================================================
+   NUMBER
+======================================================= */
+
+.step-number{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:6px 14px;
+
+    border-radius:999px;
+
+    background:#F0FDF4;
+
+    color:#16A34A;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    margin-bottom:14px;
+
+}
+
+/* =======================================================
+   TITLE
+======================================================= */
+
+.step h3{
+
+    font-size:28px;
+
+    font-weight:800;
+
+    color:#16223C;
+
+    margin-bottom:14px;
+
+    line-height:1.3;
+
+}
+
+/* =======================================================
+   DESCRIPTION
+======================================================= */
+
+.step p{
+
+    color:#64748B;
+
+    line-height:1.9;
+
+    font-size:16px;
+
+    max-width:250px;
+
+    margin:auto;
+
+}
+/* =======================================================
+   BOTTOM CARD
+======================================================= */
+
+.bottom-card{
+
+    position:relative;
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    overflow:hidden;
+
+    border-radius:32px;
+
+    background:rgba(255,255,255,.75);
+
+    backdrop-filter:blur(18px);
+
+    border:1px solid rgba(255,255,255,.65);
+
+    box-shadow:
+    0 25px 60px rgba(0,0,0,.08);
+
+}
+
+/* Glow */
+
+.bottom-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:240px;
+
+    height:240px;
+
+    border-radius:50%;
+
+    background:rgba(34,197,94,.12);
+
+    filter:blur(90px);
+
+    left:-100px;
+
+    top:-100px;
+
+}
+
+.bottom-item{
+
+    position:relative;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    padding:30px 34px;
+
+    font-weight:700;
+
+    color:#16223C;
+
+    transition:
+    transform .35s ease,
+    background .35s ease;
+
+}
+
+.bottom-item:hover{
+
+    transform:translateY(-4px);
+
+}
+
+/* Divider */
+
+.bottom-item:not(:last-child){
+
+    border-right:1px solid rgba(255,255,255,.6);
+
+}
+
+/* Icon */
+
+.bottom-item svg{
+
+    flex-shrink:0;
+
+    transition:.35s;
+
+}
+
+.bottom-item:hover svg{
+
+    transform:scale(1.12);
+
+}
+
+/* Background */
+
+.green-bg{
+
+    background:linear-gradient(
+        180deg,
+        #F2FFF5,
+        #ECFFF1
+    );
+
+}
+
+.blue-bg{
+
+    background:linear-gradient(
+        180deg,
+        #F2F9FF,
+        #EDF7FF
+    );
+
+}
+
+.pink-bg{
+
+    background:linear-gradient(
+        180deg,
+        #FFF3F9,
+        #FFF7FB
+    );
+
+}
+
+/* =======================================================
+   RESPONSIVE
+======================================================= */
+
+@media(max-width:1024px){
+
+.steps-wrapper{
+
+grid-template-columns:repeat(2,1fr);
+
+gap:35px;
+
+}
+
+.line{
+
+display:none;
+
+}
+
+.bottom-card{
+
+grid-template-columns:1fr;
+
+}
+
+.bottom-item{
+
+justify-content:center;
+
+}
+
+.caraKerja h2{
+
+font-size:44px;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.caraKerja{
+
+padding:90px 0;
+
+}
+
+.cara-container{
+
+padding:0 20px;
+
+}
+
+.steps-wrapper{
+
+grid-template-columns:1fr;
+
+margin-bottom:60px;
+
+}
+
+.step{
+
+padding:12px;
+
+}
+
+.step h3{
+
+font-size:24px;
+
+}
+
+.step p{
+
+font-size:15px;
+
+}
+
+.section-desc{
+
+font-size:16px;
+
+margin-bottom:60px;
+
+}
+
+.bottom-item{
+
+padding:24px;
+
+justify-content:flex-start;
+
+}
+
+}
+
+@media(max-width:480px){
+
+.caraKerja h2{
+
+font-size:34px;
+
+}
+
+.section-desc{
+
+font-size:15px;
+
+}
+
+.step-icon{
+
+width:64px;
+
+height:64px;
+
+}
+
+.bottom-item{
+
+font-size:15px;
+
+}
+
+}
+
+/* =======================================================
+   REDUCE MOTION
+======================================================= */
+
+@media (prefers-reduced-motion: reduce){
+
+.step,
+.step-icon,
+.bottom-item{
+
+transition:none !important;
+
+}
+
+}

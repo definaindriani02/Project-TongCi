@@ -1,0 +1,618 @@
+/* =========================================================
+   TONCCI DASHBOARD — FINAL LAYOUT
+========================================================= */
+
+:root {
+  --tongci-green: #4caf50;
+  --tongci-green-dark: #347b3a;
+  --tongci-lime: #8bc34a;
+  --tongci-pink: #ff6fa7;
+
+  --dashboard-bg: #f7faf5;
+
+  --text-dark: #263a2d;
+  --text-main: #35463b;
+  --text-soft: #8e9992;
+
+  --border-soft: #e6eee3;
+
+  --sidebar-width: 256px;
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+.dashboard-layout,
+.dashboard-layout * {
+  box-sizing: border-box;
+}
+
+.dashboard-layout {
+  position: relative;
+
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: row;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at 82% 3%,
+      rgba(139, 195, 74, 0.09),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 15% 85%,
+      rgba(255, 111, 167, 0.04),
+      transparent 25%
+    ),
+    var(--dashboard-bg);
+
+  color: var(--text-main);
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.dashboard-layout > aside {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+
+  width: var(--sidebar-width);
+  height: 100vh;
+
+  flex-shrink: 0;
+
+  z-index: 100;
+
+  overflow-y: auto;
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.dashboard-main {
+  position: relative;
+
+  z-index: 1;
+
+  width: calc(100% - var(--sidebar-width));
+
+  min-width: 0;
+  min-height: 100vh;
+
+  margin-left: var(--sidebar-width);
+
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.dashboard-content {
+  position: relative;
+
+  width: 100%;
+
+  /*
+    Jangan dibuat terlalu sempit.
+    Dashboard harus memenuhi area kanan.
+  */
+  max-width: none;
+
+  margin: 0;
+
+  padding: 24px 30px 60px;
+}
+
+
+/* =========================================================
+   BACKGROUND ORBS
+========================================================= */
+
+.dashboard-bg-orb {
+  position: fixed;
+
+  z-index: 0;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(3px);
+}
+
+.orb-one {
+  width: 330px;
+  height: 330px;
+
+  top: -180px;
+  right: 100px;
+
+  background:
+    rgba(139, 195, 74, 0.075);
+}
+
+.orb-two {
+  width: 260px;
+  height: 260px;
+
+  bottom: -120px;
+  left: 330px;
+
+  background:
+    rgba(255, 111, 167, 0.035);
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.dashboard-content > .hero-dashboard {
+  width: 100%;
+
+  margin: 0 0 24px;
+}
+
+
+/* =========================================================
+   STATISTIK
+   NOTE:
+   JSX menggunakan .dashboard-statistik
+========================================================= */
+
+.dashboard-content > .dashboard-statistik {
+  width: 100%;
+
+  margin: 0 0 25px;
+}
+
+
+/* =========================================================
+   AKTIVITAS + AI
+========================================================= */
+
+.dashboard-activity-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.55fr)
+    minmax(260px, 0.75fr);
+
+  gap: 18px;
+
+  align-items: stretch;
+
+  margin: 0 0 25px;
+}
+
+
+/* =========================================================
+   AI CARD
+========================================================= */
+
+.dashboard-ai-card {
+  position: relative;
+
+  min-height: 215px;
+
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center;
+
+  padding: 25px;
+
+  overflow: hidden;
+
+  border: 1px solid #e3ece0;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #eff9e9 0%,
+      #ffffff 48%,
+      #fff1f6 100%
+    );
+
+  box-shadow:
+    0 10px 30px rgba(50, 90, 55, 0.055);
+}
+
+.dashboard-ai-card::before {
+  content: "";
+
+  position: absolute;
+
+  width: 170px;
+  height: 170px;
+
+  top: -85px;
+  right: -50px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(139, 195, 74, 0.12);
+}
+
+.dashboard-ai-card::after {
+  content: "";
+
+  position: absolute;
+
+  width: 140px;
+  height: 140px;
+
+  bottom: -70px;
+  left: -45px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 111, 167, 0.07);
+}
+
+
+/* =========================================================
+   AI ICON
+========================================================= */
+
+.dashboard-ai-icon {
+  position: relative;
+
+  z-index: 1;
+
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 15px;
+
+  border-radius: 15px;
+
+  background: #e9f7e3;
+
+  font-size: 22px;
+
+  box-shadow:
+    0 8px 20px rgba(76, 175, 80, 0.1);
+}
+
+
+.dashboard-ai-card > div:last-child {
+  position: relative;
+
+  z-index: 1;
+}
+
+
+.dashboard-ai-card span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #91a098;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.12em;
+}
+
+
+.dashboard-ai-card h3 {
+  margin: 0;
+
+  color: var(--text-dark);
+
+  font-size: 20px;
+
+  line-height: 1.2;
+
+  font-weight: 900;
+}
+
+
+.dashboard-ai-card p {
+  max-width: 280px;
+
+  margin: 8px 0 0;
+
+  color: var(--text-soft);
+
+  font-size: 9px;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   TIPS 3R
+========================================================= */
+
+.dashboard-content > .tips-3r {
+  width: 100%;
+
+  margin: 0 0 25px;
+}
+
+
+/* =========================================================
+   REWARD
+   JSX menggunakan .reward-section
+========================================================= */
+
+.dashboard-content > .reward-section {
+  width: 100%;
+
+  margin: 0;
+}
+
+
+/* =========================================================
+   GENERAL LINK / BUTTON
+========================================================= */
+
+.dashboard-content a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dashboard-content button {
+  font-family: inherit;
+}
+
+
+/* =========================================================
+   MAKE ALL MAIN SECTIONS CONSISTENT
+========================================================= */
+
+.dashboard-content > section {
+  width: 100%;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.dashboard-layout::-webkit-scrollbar {
+  width: 7px;
+}
+
+.dashboard-layout::-webkit-scrollbar-track {
+  background: #f4f7f2;
+}
+
+.dashboard-layout::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background: #d6e2d2;
+}
+
+.dashboard-layout::-webkit-scrollbar-thumb:hover {
+  background: #b9cdb4;
+}
+
+
+/* =========================================================
+   LARGE DESKTOP
+========================================================= */
+
+@media (min-width: 1300px) {
+
+  .dashboard-content {
+    padding:
+      24px
+      38px
+      65px;
+  }
+
+  .dashboard-activity-grid {
+    grid-template-columns:
+      minmax(0, 1.6fr)
+      minmax(290px, 0.7fr);
+  }
+
+}
+
+
+/* =========================================================
+   TABLET / LAPTOP
+========================================================= */
+
+@media (max-width: 1100px) {
+
+  :root {
+    --sidebar-width: 220px;
+  }
+
+
+  .dashboard-content {
+    padding:
+      22px
+      24px
+      55px;
+  }
+
+
+  .dashboard-activity-grid {
+    grid-template-columns:
+      minmax(0, 1.3fr)
+      minmax(240px, 0.7fr);
+
+    gap: 15px;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL LAPTOP
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .dashboard-content {
+    padding:
+      20px
+      20px
+      50px;
+  }
+
+
+  .dashboard-activity-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .dashboard-ai-card {
+    min-height: 190px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .dashboard-layout {
+    display: block;
+  }
+
+
+  .dashboard-layout > aside {
+    position: fixed;
+
+    left: 0;
+    top: 0;
+
+    width: 256px;
+
+    transform: translateX(-100%);
+
+    transition:
+      transform 0.3s ease;
+
+    z-index: 200;
+  }
+
+
+  .dashboard-main {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+
+  .dashboard-content {
+    width: 100%;
+
+    padding:
+      18px
+      16px
+      45px;
+  }
+
+
+  .dashboard-activity-grid {
+    grid-template-columns: 1fr;
+
+    gap: 15px;
+
+    margin-bottom: 22px;
+  }
+
+
+  .dashboard-ai-card {
+    min-height: 180px;
+
+    padding: 22px;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 560px) {
+
+  .dashboard-content {
+    padding:
+      15px
+      13px
+      35px;
+  }
+
+
+  .dashboard-content > .hero-dashboard {
+    margin-bottom: 20px;
+  }
+
+
+  .dashboard-content > .dashboard-statistik {
+    margin-bottom: 20px;
+  }
+
+
+  .dashboard-activity-grid {
+    gap: 13px;
+
+    margin-bottom: 20px;
+  }
+
+
+  .dashboard-ai-card {
+    min-height: 170px;
+
+    padding: 20px;
+
+    border-radius: 19px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .dashboard-content {
+    padding:
+      13px
+      11px
+      30px;
+  }
+
+}

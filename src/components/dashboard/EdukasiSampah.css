@@ -1,0 +1,315 @@
+.edukasi-dashboard {
+  margin-top: 30px;
+}
+
+
+.edukasi-dashboard-header {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  margin-bottom: 16px;
+}
+
+
+.edukasi-dashboard-label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #9aa69e;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+}
+
+
+.edukasi-dashboard-header h2 {
+  margin: 0;
+
+  color: #263a2d;
+
+  font-size: 20px;
+
+  font-weight: 900;
+
+  letter-spacing: -0.03em;
+}
+
+
+.edukasi-dashboard-header p {
+  margin: 6px 0 0;
+
+  color: #8e9992;
+
+  font-size: 9px;
+}
+
+
+.edukasi-dashboard-link {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  color: #4b994d;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  text-decoration: none;
+}
+
+
+.edukasi-dashboard-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 15px;
+}
+
+
+.edukasi-dashboard-card {
+  overflow: hidden;
+
+  border-radius: 19px;
+
+  background: #ffffff;
+
+  border: 1px solid #e8eee6;
+
+  box-shadow:
+    0 7px 25px rgba(55, 100, 60, 0.045);
+
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+
+.edukasi-dashboard-card:hover {
+  border-color: #dcebd7;
+
+  box-shadow:
+    0 15px 35px rgba(55, 100, 60, 0.08);
+}
+
+
+/* VISUAL */
+
+.edukasi-dashboard-visual {
+  position: relative;
+
+  height: 105px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      #f5fbe9 0%,
+      #edf7e4 45%,
+      #f9fcf6 100%
+    );
+}
+
+
+.edukasi-dashboard-visual::before {
+  content: "";
+
+  position: absolute;
+
+  width: 115px;
+  height: 115px;
+
+  border-radius: 50%;
+
+  background: rgba(139, 195, 74, 0.12);
+
+  transform: translateY(28px);
+}
+
+
+.edukasi-dashboard-emoji {
+  position: relative;
+
+  z-index: 2;
+
+  font-size: 48px;
+
+  filter: drop-shadow(
+    0 7px 8px rgba(70, 110, 70, 0.1)
+  );
+
+  animation: edukasiFloat 4s ease-in-out infinite;
+}
+
+
+@keyframes edukasiFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+
+}
+
+
+.edukasi-dashboard-sparkle {
+  position: absolute;
+
+  top: 13px;
+  right: 15px;
+
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  color: #ff78a7;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 5px 13px rgba(100, 100, 100, 0.07);
+}
+
+
+/* BODY */
+
+.edukasi-dashboard-body {
+  padding: 14px;
+}
+
+
+.edukasi-dashboard-category {
+  display: inline-block;
+
+  padding: 4px 6px;
+
+  border-radius: 5px;
+
+  color: #4b964b;
+
+  background: #eef8e8;
+
+  font-size: 6px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.08em;
+}
+
+
+.edukasi-dashboard-body h3 {
+  margin: 8px 0 0;
+
+  color: #34463a;
+
+  font-size: 11px;
+
+  line-height: 1.4;
+
+  font-weight: 900;
+}
+
+
+.edukasi-dashboard-body p {
+  margin: 6px 0 0;
+
+  color: #929d96;
+
+  font-size: 8px;
+
+  line-height: 1.5;
+}
+
+
+.edukasi-dashboard-footer {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-top: 13px;
+
+  padding-top: 10px;
+
+  border-top: 1px solid #eef2ed;
+
+  color: #a0aaa3;
+
+  font-size: 7px;
+
+  font-weight: 700;
+}
+
+
+.edukasi-dashboard-footer > span:first-child {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+}
+
+
+.edukasi-read {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  color: #4caf50;
+}
+
+
+@media (max-width: 750px) {
+
+  .edukasi-dashboard-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (max-width: 520px) {
+
+  .edukasi-dashboard-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 10px;
+  }
+
+  .edukasi-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
