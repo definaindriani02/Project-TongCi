@@ -6,12 +6,16 @@ import { Sparkles, TrendingUp, Leaf, Zap, RefreshCw } from "lucide-react";
 
 export default function StatistikPage() {
   const [stats, setStats] = useState({
-    organik: 0,
-    plastik: 0,
-    kertas: 0,
-    logam: 0,
-    totalKg: 0,
+    organik: "0.0",
+    plastik: "0.0",
+    kertas: "0.0",
+    logam: "0.0",
+    totalKg: "0.0",
     totalCarbonKg: "0.0",
+    pOrganik: 0,
+    pPlastik: 0,
+    pKertas: 0,
+    pLogam: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -24,41 +28,26 @@ export default function StatistikPage() {
         return;
       }
 
-      // MENGAMBIL DATA DARI TABEL statistik (sesuai kolom category & weight)
-      const { data: scans, error } = await supabase
-        .from("statistik")
-        .select("category, weight, created_at")
-        .eq("user_id", session.user.id);
-
-      if (error || !scans || scans.length === 0) {
-        setLoading(false);
-        return;
+      // MENGAMBIL DATA DARI API /api/stats (Supabase waste_logs)
+      const res = await fetch(`/api/stats?userId=${session.user.id}`);
+      if (res.ok) {
+        const result = await res.json();
+        if (result.success && result.data) {
+          const d = result.data;
+          setStats({
+            organik: d.organikKg.toFixed(1),
+            plastik: d.plastikKg.toFixed(1),
+            kertas: d.kertasKg.toFixed(1),
+            logam: d.logamB3Kg.toFixed(1),
+            totalKg: d.totalKg.toFixed(1),
+            totalCarbonKg: d.totalCarbonKg,
+            pOrganik: d.organikPercent,
+            pPlastik: d.plastikPercent,
+            pKertas: d.kertasPercent,
+            pLogam: d.logamB3Percent,
+          });
+        }
       }
-
-      let org = 0, plas = 0, ker = 0, log = 0;
-
-      scans.forEach((scan) => {
-        // Ambil berat aktual dari kolom weight (default ke 0.5 jika kosong/null)
-        const w = parseFloat(scan.weight) || 0.5; 
-        const cat = scan.category?.toLowerCase() || "";
-        
-        if (cat.includes("organik")) org += w;
-        else if (cat.includes("plastik")) plas += w;
-        else if (cat.includes("kertas")) ker += w;
-        else log += w;
-      });
-
-      const total = org + plas + ker + log;
-      const carbon = (total * 2.5).toFixed(1);
-
-      setStats({
-        organik: org.toFixed(1),
-        plastik: plas.toFixed(1),
-        kertas: ker.toFixed(1),
-        logam: log.toFixed(1),
-        totalKg: total.toFixed(1),
-        totalCarbonKg: carbon,
-      });
     } catch (err) {
       console.error("Gagal memuat data statistik:", err);
     } finally {
@@ -70,11 +59,11 @@ export default function StatistikPage() {
     fetchRealtimeStats();
   }, []);
 
-  const totalWeight = parseFloat(stats.totalKg) || 1;
-  const pOrganik = Math.round((parseFloat(stats.organik) / totalWeight) * 100) || 0;
-  const pPlastik = Math.round((parseFloat(stats.plastik) / totalWeight) * 100) || 0;
-  const pKertas = Math.round((parseFloat(stats.kertas) / totalWeight) * 100) || 0;
-  const pLogam = Math.max(0, 100 - (pOrganik + pPlastik + pKertas));
+  const totalWeight = parseFloat(stats.totalKg) || 0;
+  const pOrganik = stats.pOrganik !== undefined ? stats.pOrganik : (totalWeight > 0 ? Math.round((parseFloat(stats.organik) / totalWeight) * 100) : 0);
+  const pPlastik = stats.pPlastik !== undefined ? stats.pPlastik : (totalWeight > 0 ? Math.round((parseFloat(stats.plastik) / totalWeight) * 100) : 0);
+  const pKertas = stats.pKertas !== undefined ? stats.pKertas : (totalWeight > 0 ? Math.round((parseFloat(stats.kertas) / totalWeight) * 100) : 0);
+  const pLogam = stats.pLogam !== undefined ? stats.pLogam : (totalWeight > 0 ? Math.round((parseFloat(stats.logam) / totalWeight) * 100) : 0);
 
   return (
     <div className="space-y-6 max-w-7xl w-full mx-auto pb-12">

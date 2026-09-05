@@ -123,7 +123,10 @@ export default function KlasifikasiAI() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ image: base64Img }),
+        body: JSON.stringify({
+          image: base64Img,
+          userId: user?.id || null,
+        }),
       });
 
       // Parsing aman untuk menangkap detail error dari backend

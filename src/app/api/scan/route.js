@@ -150,6 +150,7 @@ Berikan response HANYA dalam format JSON dengan struktur:
 {
   "category": "Plastik",
   "item_name": "Botol Plastik",
+  "weight_gram": 200,
   "confidence": 95,
   "disposal_instructions": "Pisahkan dari sampah lain dan masukkan ke tempat sampah plastik atau bank sampah.",
   "percentages": {
@@ -161,12 +162,13 @@ Berikan response HANYA dalam format JSON dengan struktur:
 }
 
 ATURAN:
-1. category HANYA salah satu dari: "Organik", "Plastik", "Kertas", "Logam".
-2. confidence harus berupa angka 0 - 100.
-3. Total dari percentages harus 100.
-4. item_name menjelaskan nama spesifik benda.
-5. disposal_instructions menjelaskan cara membuang/mendaur ulang.
-6. HANYA keluarkan JSON murni tanpa markdown.
+1. category HANYA salah satu dari: "Organik", "Plastik", "Kertas", "Logam", "B3".
+2. weight_gram adalah estimasi berat benda dalam gram (100 - 500 gram).
+3. confidence harus berupa angka 0 - 100.
+4. Total dari percentages harus 100.
+5. item_name menjelaskan nama spesifik benda.
+6. disposal_instructions menjelaskan cara membuang/mendaur ulang.
+7. HANYA keluarkan JSON murni tanpa markdown.
 `;
 
       // Format objek inlineData untuk SDK @google/genai
@@ -209,6 +211,7 @@ ATURAN:
         parsedData = {
           category: "Plastik",
           item_name: "Sampah Terdeteksi",
+          weight_gram: 200,
           confidence: 80,
           disposal_instructions: "Pisahkan sampah ini sesuai jenis materialnya.",
           percentages: { Organik: 0, Plastik: 100, Kertas: 0, Logam: 0 },
@@ -216,10 +219,28 @@ ATURAN:
       }
 
       // Validasi struktur data
-      const allowedCategories = ["Organik", "Plastik", "Kertas", "Logam"];
+      const allowedCategories = ["Organik", "Plastik", "Kertas", "Logam", "B3"];
       if (!allowedCategories.includes(parsedData.category)) {
         parsedData.category = "Plastik";
       }
+
+      // Pastikan weight_gram bernilai integer positif antara 100g - 500g
+      if (
+        typeof parsedData.weight_gram !== "number" ||
+        isNaN(parsedData.weight_gram) ||
+        parsedData.weight_gram <= 0
+      ) {
+        const cat = parsedData.category.toLowerCase();
+        if (cat === "organik") parsedData.weight_gram = 300;
+        else if (cat === "plastik") parsedData.weight_gram = 200;
+        else if (cat === "kertas") parsedData.weight_gram = 150;
+        else if (cat === "logam") parsedData.weight_gram = 400;
+        else if (cat === "b3") parsedData.weight_gram = 250;
+        else parsedData.weight_gram = 200;
+      } else {
+        parsedData.weight_gram = Math.round(parsedData.weight_gram);
+      }
+
       if (typeof parsedData.confidence !== "number") {
         parsedData.confidence = 80;
       }
@@ -228,6 +249,31 @@ ATURAN:
       }
       if (!parsedData.disposal_instructions) {
         parsedData.disposal_instructions = "Pisahkan sampah sesuai jenis materialnya.";
+      }
+
+      // SISIPKAN (INSERT) 1 BARIS LOG BARU KE TABEL waste_logs
+      if (body.userId) {
+        try {
+          const { error: logErr } = await supabase.from("waste_logs").insert([
+            {
+              user_id: body.userId,
+              category: parsedData.category,
+              weight_gram: parsedData.weight_gram,
+            },
+          ]);
+
+          if (logErr) {
+            console.error("[TongCi] Insert waste_logs failed:", logErr.message);
+          } else {
+            console.log("[TongCi] Insert waste_logs success:", {
+              user_id: body.userId,
+              category: parsedData.category,
+              weight_gram: parsedData.weight_gram,
+            });
+          }
+        } catch (insertErr) {
+          console.error("[TongCi] Insert waste_logs error:", insertErr);
+        }
       }
 
       return NextResponse.json(parsedData);

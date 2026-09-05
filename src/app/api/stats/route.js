@@ -20,13 +20,14 @@ export async function GET(req) {
       );
     }
 
+    // Query data dari tabel waste_logs berdasarkan user_id
     const { data: logs, error } = await supabase
       .from("waste_logs")
       .select("category, weight_gram, created_at")
       .eq("user_id", userId);
 
     if (error) {
-      console.error("[Statistik API Error]:", error);
+      console.error("[Stats API Error]:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
@@ -58,12 +59,16 @@ export async function GET(req) {
       });
     }
 
+    // 2a. Total Berat Sampah Per Kategori (dalam kg)
     const organikKg = organikGram / 1000;
     const plastikKg = plastikGram / 1000;
     const kertasKg = kertasGram / 1000;
     const logamB3Kg = logamB3Gram / 1000;
+
+    // Total Sampah Dipindai (kg)
     const totalKg = organikKg + plastikKg + kertasKg + logamB3Kg;
 
+    // 2b. Persentase Kategori (%)
     let organikPercent = 0;
     let plastikPercent = 0;
     let kertasPercent = 0;
@@ -76,6 +81,7 @@ export async function GET(req) {
       logamB3Percent = Math.round((logamB3Kg / totalKg) * 100);
     }
 
+    // 2c. Estimasi Pengurangan Emisi Karbon (kg CO2)
     const totalCarbonKg = totalKg * 2.5;
 
     return NextResponse.json({
@@ -94,48 +100,9 @@ export async function GET(req) {
       },
     });
   } catch (err) {
-    console.error("[Statistik API Server Error]:", err);
+    console.error("[Stats API Server Error]:", err);
     return NextResponse.json(
-      { error: "Terjadi kesalahan pada server." },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(req) {
-  try {
-    const { userId, category, weight, weight_gram, imageUrl } = await req.json();
-
-    if (!userId || !category) {
-      return NextResponse.json(
-        { error: "Data userId dan category wajib diisi." },
-        { status: 400 }
-      );
-    }
-
-    const calculatedWeightGram = weight_gram || (weight ? Math.round(weight * 1000) : 200);
-
-    const { data, error } = await supabase.from("waste_logs").insert([
-      {
-        user_id: userId,
-        category: category,
-        weight_gram: calculatedWeightGram,
-      },
-    ]);
-
-    if (error) {
-      console.error("[Statistik Insert Error]:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Data statistik berhasil disimpan ke waste_logs!",
-    });
-  } catch (err) {
-    console.error("[Statistik API Error]:", err);
-    return NextResponse.json(
-      { error: "Terjadi kesalahan server." },
+      { error: "Terjadi kesalahan pada server: " + (err?.message || err) },
       { status: 500 }
     );
   }
