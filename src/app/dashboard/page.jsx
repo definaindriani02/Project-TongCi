@@ -22,32 +22,31 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // USER DATA
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+
+  // SCAN DATA
   const [scanCount, setScanCount] = useState(0);
   const [recentScans, setRecentScans] = useState([]);
+
+  // LOADING
   const [loading, setLoading] = useState(true);
 
-  // FETCH DASHBOARD DATA
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    let isMounted = true;
+    let scanChannel = null;
+    let profileChannel = null;
+
+    const fetchDashboardData = async (userId) => {
       try {
-        setLoading(true);
+        // ==========================================
+        // PROFILE
+        // ==========================================
 
-        // 1. GET SESSION & PROTEKSI AUTH
         const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-
-        if (sessionError || !session?.user) {
-          router.push("/login");
-          return;
-        }
-
-        const userId = session.user.id;
-
-        // 2. FETCH PROFILE
-        const { data: profileData, error: profileError } = await supabase
+          data: profileData,
+          error: profileError,
+        } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", userId)
@@ -55,24 +54,42 @@ export default function Dashboard() {
 
         if (profileError) {
           console.error("Gagal mengambil profile:", profileError);
-        } else {
+        } else if (isMounted) {
           setProfile(profileData);
         }
 
-        // 3. FETCH TOTAL SCAN
-        const { count, error: scanCountError } = await supabase
+        // ==========================================
+        // TOTAL SCAN
+        // ==========================================
+
+        const {
+          count,
+          error: scanCountError,
+        } = await supabase
           .from("scans")
-          .select("*", { count: "exact", head: true })
+          .select("*", {
+            count: "exact",
+            head: true,
+          })
           .eq("user_id", userId);
 
         if (scanCountError) {
-          console.error("Gagal menghitung scan:", scanCountError);
-        } else {
+          console.error(
+            "Gagal menghitung total scan:",
+            scanCountError
+          );
+        } else if (isMounted) {
           setScanCount(count || 0);
         }
 
-        // 4. FETCH RECENT SCANS
-        const { data: recentData, error: recentError } = await supabase
+        // ==========================================
+        // AKTIVITAS TERKINI
+        // ==========================================
+
+        const {
+          data: recentData,
+          error: recentError,
+        } = await supabase
           .from("scans")
           .select(`
             id,
@@ -83,23 +100,169 @@ export default function Dashboard() {
             created_at
           `)
           .eq("user_id", userId)
-          .order("created_at", { ascending: false })
+          .order("created_at", {
+            ascending: false,
+          })
           .limit(5);
 
         if (recentError) {
-          console.error("Gagal mengambil aktivitas:", recentError);
-        } else {
+          console.error(
+            "Gagal mengambil aktivitas:",
+            recentError
+          );
+        } else if (isMounted) {
           setRecentScans(recentData || []);
         }
       } catch (error) {
         console.error("Dashboard error:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    fetchDashboardData();
+    const initializeDashboard = async () => {
+      try {
+        setLoading(true);
+
+        // ==========================================
+        // GET AUTH USER
+        // ==========================================
+
+        const {
+          data: { user: currentUser },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError || !currentUser) {
+          router.push("/login");
+          return;
+        }
+
+        if (!isMounted) return;
+
+        setUser(currentUser);
+
+        const userId = currentUser.id;
+
+        // ==========================================
+        // INITIAL FETCH
+        // ==========================================
+
+        await fetchDashboardData(userId);
+
+        if (!isMounted) return;
+
+        setLoading(false);
+
+        // ==========================================
+        // REALTIME SCANS
+        // ==========================================
+
+        scanChannel = supabase
+          .channel(`dashboard-scans-${userId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "scans",
+              filter: `user_id=eq.${userId}`,
+            },
+            async () => {
+              console.log("Realtime: data scan berubah");
+
+              await fetchDashboardData(userId);
+            }
+          )
+          .subscribe((status) => {
+            console.log(
+              "Status realtime scans:",
+              status
+            );
+          });
+
+        // ==========================================
+        // REALTIME PROFILE
+        // ==========================================
+
+        profileChannel = supabase
+          .channel(`dashboard-profile-${userId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "profiles",
+              filter: `id=eq.${userId}`,
+            },
+            (payload) => {
+              console.log(
+                "Realtime: profile berubah",
+                payload
+              );
+
+              if (payload.eventType === "DELETE") {
+                setProfile(null);
+                return;
+              }
+
+              if (payload.new) {
+                setProfile(payload.new);
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log(
+              "Status realtime profile:",
+              status
+            );
+          });
+      } catch (error) {
+        console.error(
+          "Gagal memuat dashboard:",
+          error
+        );
+
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeDashboard();
+
+    // ==========================================
+    // CLEANUP REALTIME
+    // ==========================================
+
+    return () => {
+      isMounted = false;
+
+      if (scanChannel) {
+        supabase.removeChannel(scanChannel);
+      }
+
+      if (profileChannel) {
+        supabase.removeChannel(profileChannel);
+      }
+    };
   }, [router]);
+
+  // ==========================================
+  // REDEEM REWARD
+  // ==========================================
+
+  const handleRedeemSuccess = (cost) => {
+    setProfile((prev) => {
+      if (!prev) return null;
+
+      return {
+        ...prev,
+        points: Math.max(
+          0,
+          (prev.points || 0) - cost
+        ),
+      };
+    });
+  };
 
   return (
     <div className="dashboard-layout">
@@ -113,12 +276,22 @@ export default function Dashboard() {
       {/* MAIN CONTAINER */}
       <div className="dashboard-main">
         {/* HEADER */}
-        <Header onMenuClick={() => setSidebarOpen((prev) => !prev)} />
+        <Header
+          onMenuClick={() =>
+            setSidebarOpen((prev) => !prev)
+          }
+          user={user}
+          profile={profile}
+        />
 
         {/* CONTENT */}
         <main className="dashboard-content">
           {/* HERO DASHBOARD */}
-          <HeroDashboard profile={profile} loading={loading} />
+          <HeroDashboard
+            profile={profile}
+            user={user}
+            loading={loading}
+          />
 
           {/* STATISTIK */}
           <StatistikDashboard
@@ -127,11 +300,21 @@ export default function Dashboard() {
             loading={loading}
           />
 
+          {/* AKTIVITAS TERKINI */}
+          <AktivitasTerkini
+            scans={recentScans}
+            loading={loading}
+          />
+
           {/* TIPS 3R */}
           <Tips3R />
 
           {/* REWARD */}
-          <Reward points={profile?.points || 0} loading={loading} />
+          <Reward
+            points={profile?.points || 0}
+            loading={loading}
+            onRedeemSuccess={handleRedeemSuccess}
+          />
         </main>
       </div>
     </div>

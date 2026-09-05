@@ -171,15 +171,6 @@ export default function Tips3R() {
               <h4 className="tip-title">{tip.title}</h4>
               <p className="tip-desc">{tip.desc}</p>
 
-              <div className="tip-footer">
-                <button
-                  className="btn-learn-more"
-                  style={{ color: currentCategory.color }}
-                >
-                  <span>Praktekkan sekarang</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
             </div>
           ))}
         </motion.div>

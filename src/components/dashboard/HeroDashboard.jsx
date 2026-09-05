@@ -1,14 +1,18 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import './HeroDashboard.css';
 
-const HeroDashboard = ({ profile, loading }) => {
-  // Ambil nama dari profile Supabase
+const HeroDashboard = ({ profile, user, loading }) => {
+  // Ambil nama dari profile / user Supabase
   const displayName =
     profile?.full_name ||
     profile?.username ||
     profile?.name ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split('@')[0] ||
     'Sobat Bumi';
 
   return (
@@ -28,7 +32,7 @@ const HeroDashboard = ({ profile, loading }) => {
               <span>Memuat...</span>
             ) : (
               <>
-                Selamat Datang, <span>{displayName}!</span> <span className="hero-leaf">🌿</span>
+                Selamat Datang, <span>{displayName}!</span> <span className="hero-leaf">🌱</span>
               </>
             )}
           </h1>
@@ -38,12 +42,12 @@ const HeroDashboard = ({ profile, loading }) => {
           </p>
 
           <div className="hero-dashboard-actions">
-            <button className="btn-primary">
+            <Link href="/scan" className="btn-primary">
               <span className="btn-icon">📷</span> Klasifikasi Sampah
-            </button>
-            <button className="btn-secondary">
+            </Link>
+            <Link href="/edukasi" className="btn-secondary">
               <span className="btn-icon">📖</span> Pelajari Tips
-            </button>
+            </Link>
           </div>
         </div>
 

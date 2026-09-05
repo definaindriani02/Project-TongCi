@@ -172,7 +172,15 @@ export default function Reward({ points = 0, onRedeemSuccess }) {
       {/* REWARD CARDS GRID */}
       <div className="reward-grid">
         {filteredRewards.map((item) => {
-          const canAfford = points >= item.pointsCost;
+          const hasStock = item.stock > 0;
+          const canAfford = points >= item.pointsCost && hasStock;
+
+          let buttonText = "Tukarkan Poin";
+          if (!hasStock) {
+            buttonText = "Stok Habis";
+          } else if (points < item.pointsCost) {
+            buttonText = "Poin Kurang";
+          }
 
           return (
             <motion.div
@@ -197,9 +205,10 @@ export default function Reward({ points = 0, onRedeemSuccess }) {
 
                 <button
                   className={`btn-tukar ${canAfford ? "active" : "disabled"}`}
-                  onClick={() => handleRedeem(item)}
+                  onClick={() => canAfford && handleRedeem(item)}
+                  disabled={!canAfford}
                 >
-                  {canAfford ? "Tukarkan" : "Poin Kurang"}
+                  {buttonText}
                 </button>
               </div>
             </motion.div>
