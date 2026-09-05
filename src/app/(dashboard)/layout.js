@@ -1,11 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
+import { supabase } from "@/lib/supabase";
 
 export default function DashboardLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        router.push("/login");
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+    checkSession();
+  }, [router]);
+
+  if (checkingAuth) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50 text-slate-400 font-bold text-sm">
+        Memeriksa akses...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans transition-colors duration-300" suppressHydrationWarning>

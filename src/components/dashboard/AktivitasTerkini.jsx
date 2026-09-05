@@ -1,23 +1,30 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Clock, ChevronRight, Leaf, Sparkles, Inbox } from "lucide-react";
+import { Clock, ChevronRight, Inbox, Camera } from "lucide-react";
 import "./AktivitasTerkini.css";
 
 // Helper untuk format kategori sampah & badge style
 const getCategoryBadge = (category = "") => {
-  const cat = category.toLowerCase();
-  if (cat.includes("organik")) {
-    return { label: "Organik", className: "badge-organik", icon: "🌱" };
+  const cat = (category || "").toLowerCase();
+  if (cat.includes("organik") && !cat.includes("anorganik")) {
+    return { label: "Organik", className: "badge-organik", icon: "🥬" };
   }
-  if (cat.includes("anorganik") || cat.includes("plastik") || cat.includes("kertas")) {
-    return { label: "Anorganik", className: "badge-anorganik", icon: "♻️" };
+  if (cat.includes("plastik")) {
+    return { label: "Plastik", className: "badge-plastik", icon: "🧴" };
+  }
+  if (cat.includes("kertas")) {
+    return { label: "Kertas", className: "badge-kertas", icon: "📦" };
+  }
+  if (cat.includes("logam") || cat.includes("besi") || cat.includes("kaleng")) {
+    return { label: "Logam", className: "badge-logam", icon: "🥫" };
   }
   if (cat.includes("b3") || cat.includes("bahaya") || cat.includes("elektronik")) {
     return { label: "B3 / Bahaya", className: "badge-b3", icon: "⚠️" };
   }
-  return { label: category || "Umum", className: "badge-default", icon: "📦" };
+  return { label: category || "Anorganik", className: "badge-anorganik", icon: "♻️" };
 };
 
 // Helper format tanggal sederhana
@@ -52,14 +59,14 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
           </div>
           <div>
             <h3>Aktivitas Terkini</h3>
-            <p>Riwayat pemilahan sampah terbaru</p>
+            <p>Riwayat pemilahan & scan sampah terbaru</p>
           </div>
         </div>
 
-        <button className="btn-see-all">
+        <Link href="/profil" className="btn-see-all">
           <span>Lihat Semua</span>
           <ChevronRight size={14} />
-        </button>
+        </Link>
       </div>
 
       {/* CONTENT LIST */}
@@ -84,15 +91,22 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="empty-icon">
-              <Inbox size={32} />
+              <Inbox size={28} />
             </div>
             <h4>Belum Ada Aktivitas</h4>
             <p>Mulai memilah dan scan sampah pertamamu untuk mengumpulkan poin!</p>
+            <Link href="/scan" className="btn-empty-scan">
+              <Camera size={14} />
+              <span>Scan Sampah Sekarang</span>
+            </Link>
           </motion.div>
         ) : (
           // DATA SCANS
           scans.map((item, index) => {
             const badge = getCategoryBadge(item.category);
+            const confVal = typeof item.confidence === "number"
+              ? (item.confidence <= 1 ? Math.round(item.confidence * 100) : Math.round(item.confidence))
+              : null;
 
             return (
               <motion.div
@@ -112,11 +126,11 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
                   <h4 className="item-name">{item.item_name || "Sampah Terdeteksi"}</h4>
                   <div className="item-meta">
                     <span className="item-time">{formatTimeAgo(item.created_at)}</span>
-                    {item.confidence && (
+                    {confVal && (
                       <>
                         <span className="meta-dot">•</span>
                         <span className="item-confidence">
-                          Akurasi {Math.round(item.confidence * 100)}%
+                          Akurasi {confVal}%
                         </span>
                       </>
                     )}
@@ -129,7 +143,7 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
                     {badge.label}
                   </span>
                   <span className="item-points">
-                    +{item.points_awarded || 10} Pts
+                    +{item.points_awarded || 18} Pts
                   </span>
                 </div>
               </motion.div>
@@ -139,4 +153,4 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
       </div>
     </div>
   );
-}
+}

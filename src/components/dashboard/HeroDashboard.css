@@ -8,17 +8,13 @@
   border: 1px solid #e2ecde;
   border-radius: 24px;
   overflow: hidden;
-  background: radial-gradient(
-      circle at 82% 20%,
+  background: radial-gradient(circle at 82% 20%,
       rgba(139, 195, 74, 0.16),
-      transparent 28%
-    ),
-    radial-gradient(
-      circle at 95% 90%,
-      rgba(255, 111, 167, 0.1)
-    ),
+      transparent 28%),
+    radial-gradient(circle at 95% 90%,
+      rgba(255, 111, 167, 0.1)),
     linear-gradient(110deg, #effae8 0%, #f8fcf3 48%, #fff6fa 100%);
-  box-shadow: 0 10px 30px rgba(53, 100, 55, 0.06);
+  box-shadow: 0 10px 30px rgba(114, 223, 120, 0.06);
   margin-bottom: 24px;
 }
 
@@ -97,7 +93,7 @@
 }
 
 .hero-title span {
-  color: #10b981;
+  color: #178f43;
 }
 
 .hero-subtitle {
@@ -125,7 +121,7 @@
   padding: 10px 20px;
   border-radius: 50px;
   color: white;
-  background: #10b981;
+  background: #1dad59;
   border: none;
   font-size: 13px;
   font-weight: 700;
@@ -267,23 +263,49 @@
    KEYFRAMES ANIMATIONS
 ========================================================= */
 @keyframes floatMascot {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes floatBubble {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 @keyframes floatLeaf {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(12deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(12deg);
+  }
 }
 
 @keyframes spinOrbit {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* =========================================================
@@ -295,12 +317,15 @@
     padding: 24px;
     text-align: center;
   }
+
   .hero-dashboard-text {
     max-width: 100%;
   }
+
   .hero-dashboard-actions {
     justify-content: center;
   }
+
   .hero-cici-area {
     height: 180px;
   }

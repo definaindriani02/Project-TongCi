@@ -90,7 +90,7 @@ export default function Reward({ points = 0, onRedeemSuccess }) {
     setRedeemStatus(null);
   };
 
-  const confirmRedeem = () => {
+  const confirmRedeem = async () => {
     if (!selectedReward) return;
 
     if (points < selectedReward.pointsCost) {
@@ -100,14 +100,17 @@ export default function Reward({ points = 0, onRedeemSuccess }) {
 
     setIsRedeeming(true);
 
-    // Simulasi Proses Penukaran (1.2 detik)
-    setTimeout(() => {
+    try {
+      if (onRedeemSuccess) {
+        await onRedeemSuccess(selectedReward.pointsCost);
+      }
       setIsRedeeming(false);
       setRedeemStatus("success");
-      if (onRedeemSuccess) {
-        onRedeemSuccess(selectedReward.pointsCost);
-      }
-    }, 1200);
+    } catch (err) {
+      console.error("Gagal menukarkan reward:", err);
+      setIsRedeeming(false);
+      setRedeemStatus("error");
+    }
   };
 
   return (

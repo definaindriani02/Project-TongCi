@@ -45,6 +45,37 @@ export default function Login() {
     router.push("/dashboard");
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const redirectUrl = typeof window !== "undefined"
+        ? `${window.location.origin}/dashboard`
+        : "/dashboard";
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+          },
+        },
+      });
+
+      if (error) {
+        setErrorMessage("Gagal login dengan Google: " + error.message);
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error("Error OAuth Google:", err);
+      setErrorMessage("Terjadi kesalahan saat terhubung ke Google OAuth: " + (err.message || "Gagal menghubungkan"));
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="login-page">
 
@@ -230,7 +261,12 @@ export default function Login() {
 
           </div>
 
-          <button className="google-btn">
+          <button
+            type="button"
+            className="google-btn"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+          >
 
             <img
               src="https://www.svgrepo.com/show/475656/google-color.svg"

@@ -19,15 +19,15 @@ function SidebarLink({ icon, label, href, active, sidebarOpen }) {
     <Link
       href={href}
       className={`flex items-center rounded-xl text-xs font-semibold transition-all duration-200 ${
-        sidebarOpen ? "px-4 py-2 gap-3" : "p-2 justify-center"
+        sidebarOpen ? "px-4 py-2.5 gap-3" : "p-2 justify-center"
       } ${
         active
-          ? "bg-emerald-500 text-white shadow-md shadow-emerald-100 scale-[1.02]"
-          : "text-emerald-700 hover:bg-emerald-50 hover:text-emerald-900"
+          ? "bg-[#22C55E] text-white shadow-md shadow-[#22C55E]/20 scale-[1.02]"
+          : "text-slate-600 hover:bg-[#22C55E]/10 hover:text-[#22C55E]"
       }`}
     >
       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-        active ? "bg-white/20" : "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100"
+        active ? "bg-white/20 text-white" : "bg-[#22C55E]/10 text-[#22C55E] group-hover:bg-[#22C55E]/20"
       }`}>
         {icon}
       </div>
@@ -50,7 +50,13 @@ export default function Sidebar({ sidebarOpen = true }) {
   ];
 
   return (
-    <aside className={`bg-white border-r border-slate-100 flex flex-col justify-between p-4 transition-all duration-300 ${sidebarOpen ? "w-64" : "w-20 items-center"}`}>
+    <aside
+      className={`bg-white border-r border-slate-100 flex flex-col justify-between p-4 transition-all duration-300 z-40 shrink-0 ${
+        sidebarOpen
+          ? "w-64 flex"
+          : "w-0 p-0 overflow-hidden opacity-0 border-none md:w-20 md:p-4 md:opacity-100 md:border-r md:flex md:items-center"
+      }`}
+    >
       <div className="w-full">
         {/* Logo Utama */}
         <div className={`flex items-center gap-3 py-2 mb-2 ${sidebarOpen ? "px-2" : "justify-center"}`}>
@@ -59,7 +65,7 @@ export default function Sidebar({ sidebarOpen = true }) {
           </div>
           {sidebarOpen && (
             <div>
-              <h1 className="font-bold text-lg text-emerald-600 leading-none tracking-wide">TongCi</h1>
+              <h1 className="font-bold text-lg text-[#22C55E] leading-none tracking-wide">TongCi</h1>
               <span className="text-xs text-pink-500 font-bold drop-shadow-sm">Sampah Cinta 💕</span>
             </div>
           )}
