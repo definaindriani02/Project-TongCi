@@ -10,7 +10,47 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [points, setPoints] = useState(0);
+  const [notifCount, setNotifCount] = useState(0);
   const pathname = usePathname();
+
+  // Fungsi untuk mengambil dan memfilter notifikasi berdasarkan preferensi profil
+  const fetchNotifications = async (userId, currentProfile) => {
+    if (!userId) return;
+
+    try {
+      // Jika profile belum dikirim, ambil dari database
+      let prof = currentProfile;
+      if (!prof) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("notif_scan, notif_points, notif_promo, notif_app_update")
+          .eq("id", userId)
+          .maybeSingle();
+        prof = data;
+      }
+
+      // Ambil daftar notifikasi
+      const { data: allNotifs } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (allNotifs && prof) {
+        // Filter notifikasi sesuai toggle preferensi profil
+        const activeNotifs = allNotifs.filter((item) => {
+          if (item.type === "scan" && !prof.notif_scan) return false;
+          if (item.type === "points" && !prof.notif_points) return false;
+          if (item.type === "promo" && !prof.notif_promo) return false;
+          if (item.type === "app_update" && !prof.notif_app_update) return false;
+          return true;
+        });
+
+        setNotifCount(activeNotifs.length);
+      }
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    }
+  };
 
   useEffect(() => {
     let profileChannel = null;
@@ -31,6 +71,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         if (prof) {
           setProfile(prof);
           setPoints(prof.points || 0);
+          fetchNotifications(currentUser.id, prof);
         } else {
           setPoints(0);
         }
@@ -51,6 +92,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
               if (payload.new) {
                 setProfile(payload.new);
                 setPoints(payload.new.points || 0);
+                fetchNotifications(currentUser.id, payload.new);
               }
             }
           )
@@ -71,11 +113,13 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         if (prof) {
           setProfile(prof);
           setPoints(prof.points || 0);
+          fetchNotifications(session.user.id, prof);
         }
       } else {
         setUser(null);
         setProfile(null);
         setPoints(0);
+        setNotifCount(0);
       }
     });
 
@@ -149,10 +193,17 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           </Link>
         )}
 
-        <button className="text-emerald-500 hover:text-emerald-600 relative p-1 cursor-pointer" title="Notifikasi">
+        {/* PERBAIKAN: Tombol Notifikasi sekarang berupa Link aktif */}
+        <Link
+          href="/notifications"
+          className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50 p-1.5 rounded-full relative cursor-pointer transition-colors"
+          title="Notifikasi"
+        >
           <Bell size={20} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full"></span>
-        </button>
+          {notifCount > 0 && (
+            <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full ring-2 ring-white"></span>
+          )}
+        </Link>
 
         {user ? (
           <Link

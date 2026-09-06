@@ -13,17 +13,41 @@ const supabaseKey =
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // =========================================================
-// 2. GEMINI SETUP (@google/genai)
+// 2. HELPER SEND NOTIFICATION
+// =========================================================
+async function sendNotification(userId, title, message, type) {
+  if (!userId) return;
+
+  try {
+    const { error } = await supabase.from("notifications").insert([
+      {
+        user_id: userId,
+        title: title,
+        message: message,
+        type: type,
+        created_at: new Date().toISOString(),
+      },
+    ]);
+
+    if (error) {
+      console.error("[TongCi] Insert notification error:", error.message);
+    } else {
+      console.log("[TongCi] Notification sent successfully to user:", userId);
+    }
+  } catch (err) {
+    console.error("[TongCi] Gagal kirim notif:", err);
+  }
+}
+
+// =========================================================
+// 3. GEMINI SETUP (@google/genai)
 // =========================================================
 const apiKey = process.env.GEMINI_API_KEY;
-
-// Inisialisasi SDK @google/genai
 const ai = apiKey ? new GoogleGenAI({ apiKey: apiKey.trim() }) : null;
-
-// PERBAIKAN: Gunakan model resmi terbaru sesuai pesan error
 const MODEL_NAME = "gemini-3.6-flash";
+
 // =========================================================
-// 3. POST HANDLER
+// 4. POST HANDLER
 // =========================================================
 export async function POST(req) {
   try {
@@ -67,14 +91,12 @@ Pertanyaan pengguna:
 "${message.trim()}"
 `;
 
-      // Pemanggilan API menggunakan SDK @google/genai
       const response = await ai.models.generateContent({
         model: MODEL_NAME,
         contents: prompt,
       });
 
       const replyText = response.text;
-
       let activeSessionId = sessionId;
 
       if (userId) {
@@ -133,7 +155,6 @@ Pertanyaan pengguna:
       let rawBase64 = body.image;
       let mimeType = "image/jpeg";
 
-      // Sanitasi Data URL & Base64
       if (rawBase64.includes(";base64,")) {
         const parts = rawBase64.split(";base64,");
         mimeType = parts[0].replace("data:", "") || "image/jpeg";
@@ -171,7 +192,6 @@ ATURAN:
 7. HANYA keluarkan JSON murni tanpa markdown.
 `;
 
-      // Format objek inlineData untuk SDK @google/genai
       const imagePart = {
         inlineData: {
           data: rawBase64,
@@ -179,7 +199,6 @@ ATURAN:
         },
       };
 
-      // Eksekusi generateContent pada SDK @google/genai
       const response = await ai.models.generateContent({
         model: MODEL_NAME,
         contents: [scanPrompt, imagePart],
@@ -190,7 +209,6 @@ ATURAN:
 
       const rawText = response.text;
 
-      // Sanitasi JSON String
       let cleanJsonText = rawText
         .replace(/```json/gi, "")
         .replace(/```/g, "")
@@ -218,13 +236,11 @@ ATURAN:
         };
       }
 
-      // Validasi struktur data
       const allowedCategories = ["Organik", "Plastik", "Kertas", "Logam", "B3"];
       if (!allowedCategories.includes(parsedData.category)) {
         parsedData.category = "Plastik";
       }
 
-      // Pastikan weight_gram bernilai integer positif antara 100g - 500g
       if (
         typeof parsedData.weight_gram !== "number" ||
         isNaN(parsedData.weight_gram) ||
@@ -251,9 +267,15 @@ ATURAN:
         parsedData.disposal_instructions = "Pisahkan sampah sesuai jenis materialnya.";
       }
 
-      // SISIPKAN (INSERT) 1 BARIS LOG BARU KE TABEL waste_logs
+      // =====================================================
+      // SIMPAN KE LOG & KIRIM NOTIFIKASI OTOMATIS
+      // =====================================================
       if (body.userId) {
         try {
+          // Hitung estimasi poin (misal tiap 10 gram = 1 poin, minimal 1 poin)
+          const pointsEarned = Math.max(1, Math.round(parsedData.weight_gram / 10));
+
+          // 1. Simpan ke tabel waste_logs
           const { error: logErr } = await supabase.from("waste_logs").insert([
             {
               user_id: body.userId,
@@ -271,8 +293,25 @@ ATURAN:
               weight_gram: parsedData.weight_gram,
             });
           }
+
+          // 2. Kirim Notifikasi Scan Berhasil
+          await sendNotification(
+            body.userId,
+            `Scan ${parsedData.category} Berhasil! 🎉`,
+            `Kamu berhasil mendeteksi ${parsedData.item_name} (~${parsedData.weight_gram}g). Terus jaga lingkungan ya!`,
+            "scan"
+          );
+
+          // 3. Kirim Notifikasi Penambahan Poin
+          await sendNotification(
+            body.userId,
+            `Poin Bertambah! 🪙`,
+            `Selamat! Kamu mendapatkan +${pointsEarned} Pts dari scan ${parsedData.item_name}.`,
+            "points"
+          );
+
         } catch (insertErr) {
-          console.error("[TongCi] Insert waste_logs error:", insertErr);
+          console.error("[TongCi] Insert log / notification error:", insertErr);
         }
       }
 

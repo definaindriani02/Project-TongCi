@@ -138,14 +138,13 @@ export default function SettingsPage() {
         } = await supabase.auth.getSession();
 
         if (sessionError || !session?.user) {
-          setLoading(false);
           return;
         }
 
         const currentUser = session.user;
         setUser(currentUser);
 
-        const { data: dbProfile, error: profileErr } = await supabase
+        const { data: dbProfile } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", currentUser.id)
@@ -278,7 +277,7 @@ export default function SettingsPage() {
 
     setSavingPassword(true);
     try {
-      const { data, error } = await supabase.auth.updateUser({
+      const { error } = await supabase.auth.updateUser({
         password: passwords.newPass,
       });
 
