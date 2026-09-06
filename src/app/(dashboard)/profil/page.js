@@ -27,25 +27,105 @@ export default function ProfilPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfileData = async () => {
+    let isMounted = true;
+    let scanChannel = null;
+    let profileChannel = null;
+
+    const fetchScanData = async (userId) => {
+      try {
+        // Hitung Total Scan & Estimasi Berat (Kg)
+        let totalScans = 0;
+        const { count: historyCount, error: historyErr } = await supabase
+          .from("scan_history")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId);
+
+        if (!historyErr && typeof historyCount === "number") {
+          totalScans = historyCount;
+        } else {
+          const { count: scansCount, error: scanErr } = await supabase
+            .from("scans")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", userId);
+
+          if (!scanErr && typeof scansCount === "number") {
+            totalScans = scansCount;
+          }
+        }
+
+        if (isMounted) {
+          setScanCount(totalScans);
+          setRecycledKg((totalScans * 0.15).toFixed(1).replace(".", ","));
+        }
+
+        // Ambil 4 Riwayat Scan Terbaru (fallback ke scans jika scan_history kosong/error)
+        let recentList = [];
+        const { data: historyRecent, error: hRecentErr } = await supabase
+          .from("scan_history")
+          .select("id, item_name, category, points_awarded, created_at")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        if (!hRecentErr && historyRecent && historyRecent.length > 0) {
+          recentList = historyRecent;
+        } else {
+          const { data: scansRecent, error: sRecentErr } = await supabase
+            .from("scans")
+            .select("id, item_name, category, points_awarded, created_at")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(4);
+
+          if (!sRecentErr && scansRecent) {
+            recentList = scansRecent;
+          }
+        }
+
+        if (isMounted) {
+          setRecentScans(recentList);
+        }
+      } catch (err) {
+        console.error("Error fetching scan data:", err);
+      }
+    };
+
+    const fetchRankData = async (userId) => {
+      try {
+        const { data: allProfiles, error: rankError } = await supabase
+          .from("profiles")
+          .select("id, points")
+          .order("points", { ascending: false });
+
+        if (!rankError && allProfiles && isMounted) {
+          const rankIndex = allProfiles.findIndex((p) => p.id === userId);
+          if (rankIndex !== -1) {
+            setUserRank(`#${rankIndex + 1}`);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching rank data:", err);
+      }
+    };
+
+    const initializeProfilPage = async () => {
       try {
         setLoading(true);
 
-        // 1. Cek User Session
         const {
           data: { session },
           error: sessionError,
         } = await supabase.auth.getSession();
 
         if (sessionError || !session?.user) {
-          setLoading(false);
+          if (isMounted) setLoading(false);
           return;
         }
 
         const userId = session.user.id;
         const userEmail = session.user.email;
 
-        // 2. Ambil Data Profiles
+        // Ambil Profile dari Supabase
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -57,65 +137,89 @@ export default function ProfilPage() {
         }
 
         const currentProfile = profileData || {
+          id: userId,
           full_name:
             session.user.user_metadata?.full_name ||
             userEmail?.split("@")[0] ||
             "Pengguna",
           email: userEmail,
-          phone: "-",
+          phone_number: "-",
           gender: "-",
           birth_date: "-",
           address: "-",
           points: 0,
         };
 
-        setProfile(currentProfile);
-
-        // 3. Hitung Total Scan & Estimasi Berat (Kg)
-        const { data: scanData, count, error: scanError } = await supabase
-          .from("scans")
-          .select("id", { count: "exact" })
-          .eq("user_id", userId);
-
-        if (!scanError) {
-          const totalScans = count || 0;
-          setScanCount(totalScans);
-          // Estimasi rata-rata 0.15kg per scan item
-          setRecycledKg((totalScans * 0.15).toFixed(1).replace(".", ","));
+        if (isMounted) {
+          setProfile(currentProfile);
         }
 
-        // 4. Ambil 4 Riwayat Scan Terbaru
-        const { data: recent, error: recentError } = await supabase
-          .from("scans")
-          .select("id, item_name, category, points_awarded, created_at")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(4);
+        await fetchScanData(userId);
+        await fetchRankData(userId);
 
-        if (!recentError && recent) {
-          setRecentScans(recent);
-        }
+        if (isMounted) setLoading(false);
 
-        // 5. Hitung Ranking Leaderboard
-        const { data: allProfiles, error: rankError } = await supabase
-          .from("profiles")
-          .select("id, points")
-          .order("points", { ascending: false });
+        // Realtime Subscription: profiles
+        profileChannel = supabase
+          .channel(`profil-page-rt-${userId}-${Date.now()}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "profiles",
+              filter: `id=eq.${userId}`,
+            },
+            (payload) => {
+              if (payload.new && isMounted) {
+                setProfile(payload.new);
+                fetchRankData(userId);
+              }
+            }
+          )
+          .subscribe();
 
-        if (!rankError && allProfiles) {
-          const rankIndex = allProfiles.findIndex((p) => p.id === userId);
-          if (rankIndex !== -1) {
-            setUserRank(`#${rankIndex + 1}`);
-          }
-        }
+        // Realtime Subscription: scan_history & scans
+        scanChannel = supabase
+          .channel(`profil-scans-rt-${userId}-${Date.now()}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "scan_history",
+              filter: `user_id=eq.${userId}`,
+            },
+            () => {
+              fetchScanData(userId);
+            }
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "scans",
+              filter: `user_id=eq.${userId}`,
+            },
+            () => {
+              fetchScanData(userId);
+            }
+          )
+          .subscribe();
       } catch (err) {
-        console.error("Error loading profile page:", err);
-      } finally {
-        setLoading(false);
+        console.error("Error initializing profile page:", err);
+        if (isMounted) setLoading(false);
       }
     };
 
-    fetchProfileData();
+    initializeProfilPage();
+
+    return () => {
+      isMounted = false;
+      if (profileChannel) supabase.removeChannel(profileChannel);
+      if (scanChannel) supabase.removeChannel(scanChannel);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -155,7 +259,7 @@ export default function ProfilPage() {
   const profileItems = [
     ["Nama", profile?.full_name || "-", UserRound],
     ["Email", profile?.email || "-", Mail],
-    ["Nomor HP", profile?.phone || "-", Phone],
+    ["Nomor HP", profile?.phone_number || profile?.phone || "-", Phone],
     ["Jenis Kelamin", profile?.gender || "-", UserRound],
     ["Tanggal Lahir", formatDate(profile?.birth_date), CalendarDays],
     ["Alamat", profile?.address || "-", MapPin],
