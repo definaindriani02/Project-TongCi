@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 export default function KlasifikasiAI() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  
+
   // App UI State: "idle" | "camera" | "analyzing" | "result"
   const [scanState, setScanState] = useState("idle");
   const [selectedImage, setSelectedImage] = useState(null);
@@ -84,7 +84,7 @@ export default function KlasifikasiAI() {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
       const base64Image = canvas.toDataURL("image/jpeg", 0.8); // Kompresi ringan agar upload lebih cepat
-      
+
       stopCamera();
       setSelectedImage(base64Image);
       analyzeImage(base64Image);
@@ -198,10 +198,10 @@ export default function KlasifikasiAI() {
 
   return (
     <div className="space-y-6">
-      
+
       {/* SCANNER CONTAINER */}
       <section className="bg-white rounded-3xl p-6 md:p-8 border border-[#22C55E]/20 shadow-sm min-h-[420px] flex flex-col justify-between relative overflow-hidden">
-        
+
         {/* Header scanner */}
         <div className="flex items-start gap-4">
           <div className="p-3 bg-[#22C55E]/10 text-[#22C55E] rounded-xl">
@@ -243,7 +243,7 @@ export default function KlasifikasiAI() {
         )}
 
         {/* WORKSPACE STATES */}
-        
+
         {/* STATE 1: IDLE */}
         {scanState === "idle" && (
           <div className="flex flex-col items-center justify-center my-auto py-8 text-center">
@@ -322,7 +322,7 @@ export default function KlasifikasiAI() {
                 <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />
               </div>
             )}
-            
+
             <h4 className="font-extrabold text-slate-800 mb-1 text-sm animate-pulse">Menganalisis gambar...</h4>
             <p className="text-xs text-[#22C55E] font-bold mb-6 flex items-center gap-1">
               CiCi sedang bekerja keras 🔍
@@ -337,26 +337,24 @@ export default function KlasifikasiAI() {
         {/* STATE 4: SCAN RESULT */}
         {scanState === "result" && scanResult && (
           <div className="flex flex-col my-auto py-4 space-y-6">
-            
+
             {/* Success box */}
-            <div className={`p-5 rounded-2xl border flex items-start gap-4 ${
-              scanResult.category === "Organik" ? "bg-[#22C55E]/10 border-[#22C55E]/20" :
-              scanResult.category === "Plastik" ? "bg-sky-50/50 border-sky-100" :
-              scanResult.category === "Kertas" ? "bg-amber-50/50 border-amber-100" :
-              "bg-slate-50/50 border-slate-100"
-            }`}>
+            <div className={`p-5 rounded-2xl border flex items-start gap-4 ${scanResult.category === "Organik" ? "bg-[#22C55E]/10 border-[#22C55E]/20" :
+                scanResult.category === "Plastik" ? "bg-sky-50/50 border-sky-100" :
+                  scanResult.category === "Kertas" ? "bg-amber-50/50 border-amber-100" :
+                    "bg-slate-50/50 border-slate-100"
+              }`}>
               <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-2xl shadow-sm shrink-0">
                 {categories.find(c => c.name === scanResult.category)?.icon || "♻️"}
               </div>
               <div className="space-y-1">
                 <h4 className="font-extrabold text-sm text-slate-800">
-                  Sampah {scanResult.category} 
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ml-2 inline-block ${
-                    scanResult.category === "Organik" ? "bg-[#22C55E]/20 text-[#22C55E]" :
-                    scanResult.category === "Plastik" ? "bg-sky-100 text-sky-700" :
-                    scanResult.category === "Kertas" ? "bg-amber-100 text-amber-700" :
-                    "bg-slate-100 text-slate-700"
-                  }`}>
+                  Sampah {scanResult.category}
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ml-2 inline-block ${scanResult.category === "Organik" ? "bg-[#22C55E]/20 text-[#22C55E]" :
+                      scanResult.category === "Plastik" ? "bg-sky-100 text-sky-700" :
+                        scanResult.category === "Kertas" ? "bg-amber-100 text-amber-700" :
+                          "bg-slate-100 text-slate-700"
+                    }`}>
                     {scanResult.confidence}% akurat
                   </span>
                 </h4>
@@ -394,7 +392,7 @@ export default function KlasifikasiAI() {
               >
                 <RefreshCw size={16} /> Analisis Lagi
               </button>
-              
+
               <button
                 onClick={saveScanPoints}
                 disabled={pointsSaved || saving}
