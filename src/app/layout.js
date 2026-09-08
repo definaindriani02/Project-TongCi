@@ -1,5 +1,6 @@
 import { Manrope } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -10,8 +11,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="id">
       <body className={manrope.className}>
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );
-}
+}
