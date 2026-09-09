@@ -123,7 +123,7 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
 
                 {/* DETAILS */}
                 <div className="item-details">
-                  <h4 className="item-name">{item.item_name || "Sampah Terdeteksi"}</h4>
+                  <h4 className="item-name">{item.item_name || item.waste_name || "Sampah Terdeteksi"}</h4>
                   <div className="item-meta">
                     <span className="item-time">{formatTimeAgo(item.created_at)}</span>
                     {confVal && (
@@ -143,7 +143,7 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
                     {badge.label}
                   </span>
                   <span className="item-points">
-                    +{item.points_awarded || 18} Pts
+                    +{item.points_awarded ?? item.points_earned ?? 18} Pts
                   </span>
                 </div>
               </motion.div>

@@ -62,23 +62,34 @@ export default function ProfilPage() {
       let recentList = [];
       const { data: historyData, error: historyErr } = await supabase
         .from("scan_history")
-        .select("id, item_name, category, points_awarded, created_at")
+        .select("id, waste_name, item_name, category, points_earned, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(4);
 
       if (!historyErr && historyData && historyData.length > 0) {
-        recentList = historyData;
+        recentList = historyData.map((item) => ({
+          id: item.id,
+          item_name: item.item_name || item.waste_name || "Sampah Terdeteksi",
+          category: item.category || "Anorganik",
+          points_awarded: item.points_earned ?? 18,
+          points_earned: item.points_earned ?? 18,
+          created_at: item.created_at,
+        }));
       } else {
-        const { data: recent, error: recentError } = await supabase
-          .from("scans")
-          .select("id, item_name, category, points_awarded, created_at")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(4);
+        try {
+          const { data: recent, error: recentError } = await supabase
+            .from("scans")
+            .select("id, item_name, category, points_awarded, created_at")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(4);
 
-        if (!recentError && recent) {
-          recentList = recent;
+          if (!recentError && recent && recent.length > 0) {
+            recentList = recent;
+          }
+        } catch (e) {
+          // Abaikan fallback error
         }
       }
 

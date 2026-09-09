@@ -51,7 +51,7 @@ export default function Sidebar({ sidebarOpen = true }) {
 
   return (
     <aside
-      className={`bg-white border-r border-slate-100 flex flex-col justify-between p-4 transition-all duration-300 z-40 shrink-0 ${
+      className={`sticky top-0 h-screen overflow-y-auto bg-white border-r border-slate-100 flex flex-col justify-between p-4 transition-all duration-300 z-40 shrink-0 ${
         sidebarOpen
           ? "w-64 flex"
           : "w-0 p-0 overflow-hidden opacity-0 border-none md:w-20 md:p-4 md:opacity-100 md:border-r md:flex md:items-center"

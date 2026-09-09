@@ -115,24 +115,37 @@ export default function Dashboard() {
         let recentScansList = [];
         const { data: historyData, error: historyErr } = await supabase
           .from("scan_history")
-          .select("id, item_name, category, confidence, points_awarded, created_at")
+          .select("id, waste_name, item_name, category, confidence, points_earned, created_at")
           .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(6);
 
         if (!historyErr && historyData && historyData.length > 0) {
-          recentScansList = historyData;
+          recentScansList = historyData.map((item) => ({
+            id: item.id,
+            item_name: item.item_name || item.waste_name || "Sampah Terdeteksi",
+            waste_name: item.waste_name || item.item_name || "Sampah Terdeteksi",
+            category: item.category || "Anorganik",
+            confidence: item.confidence ?? 85,
+            points_awarded: item.points_earned ?? 18,
+            points_earned: item.points_earned ?? 18,
+            created_at: item.created_at,
+          }));
         } else {
-          // Fallback ke tabel scans
-          const { data: recentData, error: recentError } = await supabase
-            .from("scans")
-            .select("id, item_name, category, confidence, points_awarded, created_at")
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false })
-            .limit(6);
+          // Fallback jika tabel scans ada
+          try {
+            const { data: recentData, error: recentError } = await supabase
+              .from("scans")
+              .select("id, item_name, category, confidence, points_awarded, created_at")
+              .eq("user_id", userId)
+              .order("created_at", { ascending: false })
+              .limit(6);
 
-          if (!recentError && recentData) {
-            recentScansList = recentData;
+            if (!recentError && recentData && recentData.length > 0) {
+              recentScansList = recentData;
+            }
+          } catch (e) {
+            // Abaikan fallback error
           }
         }
 

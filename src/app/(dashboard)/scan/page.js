@@ -145,7 +145,7 @@ export default function KlasifikasiAI() {
     }
   };
 
-  // SAVE RESULTS FOR POINTS VIA SUPABASE RPC
+  // SAVE RESULTS FOR POINTS VIA SUPABASE RPC WITH FALLBACK
   const saveScanPoints = async () => {
     if (!user) {
       setErrorMsg("Kamu harus masuk (Login) terlebih dahulu untuk mengklaim poin!");
@@ -158,27 +158,72 @@ export default function KlasifikasiAI() {
     setSuccessMsg("");
 
     try {
-      // Panggil fungsi RPC claim_scan_points di Supabase Database
-      const { data, error } = await supabase.rpc("claim_scan_points", {
-        p_waste_name: scanResult.item_name || "Sampah Terdeteksi",
-        p_category: scanResult.category || "Anorganik",
-        p_points_earned: 18,
-        p_image_url: null,
-      });
+      const wasteName = scanResult.item_name || "Sampah Terdeteksi";
+      const wasteCat = scanResult.category || "Anorganik";
+      const earnedPoints = 18;
+      let rpcSuccess = false;
+      let updatedData = null;
 
-      if (error) throw error;
+      // 1. Panggil fungsi RPC claim_scan_points di Supabase Database
+      try {
+        const { data, error } = await supabase.rpc("claim_scan_points", {
+          p_waste_name: wasteName,
+          p_category: wasteCat,
+          p_points_earned: earnedPoints,
+          p_image_url: null,
+        });
+
+        if (!error && data) {
+          rpcSuccess = true;
+          updatedData = data;
+        } else if (error) {
+          console.warn("RPC claim_scan_points warning, fallback to direct insert:", error.message);
+        }
+      } catch (rpcErr) {
+        console.warn("RPC call error, fallback to direct insert:", rpcErr);
+      }
+
+      // 2. Fallback: jika RPC tidak berhasil, simpan langsung ke scan_history & update profil
+      if (!rpcSuccess) {
+        const { error: insertError } = await supabase.from("scan_history").insert({
+          user_id: user.id,
+          waste_name: wasteName,
+          item_name: wasteName,
+          category: wasteCat,
+          points_earned: earnedPoints,
+          confidence: typeof scanResult.confidence === "number" ? Math.round(scanResult.confidence) : 85,
+        });
+
+        if (insertError) throw insertError;
+
+        const currentPoints = profile?.points || 0;
+        const currentScans = profile?.total_scan || 0;
+        const newPoints = currentPoints + earnedPoints;
+        const newScans = currentScans + 1;
+
+        await supabase
+          .from("profiles")
+          .update({
+            points: newPoints,
+            total_scan: newScans,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", user.id);
+
+        updatedData = { points: newPoints, total_scan: newScans };
+      }
 
       // Update state lokal profil agar tampilan UI langsung berubah
-      if (data) {
+      if (updatedData) {
         setProfile((prev) => ({
           ...prev,
-          points: data.points,
-          total_scan: data.total_scan,
+          points: updatedData.points,
+          total_scan: updatedData.total_scan,
         }));
       }
 
       setPointsSaved(true);
-      setSuccessMsg(`Poin berhasil diklaim! +18 Pts ditambahkan ke akun Anda.`);
+      setSuccessMsg(`Poin berhasil diklaim! +${earnedPoints} Pts ditambahkan ke akun Anda.`);
     } catch (err) {
       console.error("Gagal menyimpan poin:", err?.message || err);
       setErrorMsg("Gagal menyimpan poin ke database: " + (err?.message || "Terjadi kesalahan"));
