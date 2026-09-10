@@ -462,13 +462,13 @@ export default function KlasifikasiAI() {
       </section>
 
       {/* GRID KATEGORI SAMPAH BAWAH */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {categories.map((cat, idx) => (
           <div
             key={idx}
-            className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center transition-transform hover:-translate-y-1 duration-200 cursor-pointer"
+            className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center transition-transform hover:-translate-y-1 duration-200 cursor-pointer"
           >
-            <div className={`w-12 h-12 ${cat.color} rounded-2xl flex items-center justify-center text-2xl text-white mb-3 shadow-sm`}>
+            <div className={`w-10 h-10 sm:w-12 sm:h-12 ${cat.color} rounded-2xl flex items-center justify-center text-xl sm:text-2xl text-white mb-2 sm:mb-3 shadow-sm`}>
               {cat.icon}
             </div>
             <h4 className="font-extrabold text-xs text-slate-800">{cat.name}</h4>

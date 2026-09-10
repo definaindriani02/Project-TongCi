@@ -167,8 +167,8 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-slate-100 bg-white px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between gap-2 sm:gap-4 border-b border-slate-100 bg-white/95 backdrop-blur-md px-3 sm:px-6">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="cursor-pointer rounded-lg p-1.5 text-emerald-700 transition-all hover:bg-slate-50 hover:text-emerald-500 active:scale-95"
@@ -176,27 +176,27 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         >
           <Menu size={20} />
         </button>
-        <h2 className="hidden text-sm font-bold tracking-wide text-emerald-800 sm:block">
+        <h2 className="hidden text-xs font-bold tracking-wide text-emerald-800 sm:block md:text-sm truncate">
           {getPageTitle()}
         </h2>
       </div>
 
-      <div className="relative max-w-md flex-1">
-        <Search className="absolute left-4 top-2.5 h-4 w-4 text-emerald-500" />
+      <div className="relative max-w-[180px] xs:max-w-[240px] sm:max-w-md flex-1">
+        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 sm:left-4 sm:h-4 sm:w-4 text-emerald-500" />
         <input
           type="text"
-          placeholder="Cari fitur, tips, informasi..."
-          className="w-full rounded-full border border-emerald-100/60 bg-emerald-50/40 py-2 pl-10 pr-4 text-xs text-emerald-800 transition-colors focus:border-emerald-500 focus:outline-none"
+          placeholder="Cari fitur..."
+          className="w-full rounded-full border border-emerald-100/60 bg-emerald-50/40 py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-[11px] sm:text-xs text-emerald-800 transition-colors focus:border-emerald-500 focus:outline-none"
         />
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {user && (
           <Link
             href="/profil"
-            className="flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-colors hover:bg-amber-100"
+            className="flex items-center gap-1 sm:gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-amber-700 transition-colors hover:bg-amber-100 shrink-0"
           >
-            <Award size={14} className="text-amber-500" />
+            <Award size={14} className="text-amber-500 shrink-0" />
             <span>{points.toLocaleString("id-ID")} Pts</span>
           </Link>
         )}
@@ -204,7 +204,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         {/* Tombol Lonceng Notifikasi yang Dinamis */}
         <Link
           href="/notifications"
-          className="relative cursor-pointer p-1 text-emerald-500 transition-transform hover:text-emerald-600 active:scale-95"
+          className="relative cursor-pointer p-1 text-emerald-500 transition-transform hover:text-emerald-600 active:scale-95 shrink-0"
           title="Notifikasi"
         >
           <Bell size={20} />
@@ -219,7 +219,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           <Link
             href="/profil"
             title={`Profil: ${displayName}`}
-            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-500 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-emerald-600"
+            className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-500 text-xs sm:text-sm font-extrabold text-white shadow-sm transition-all hover:bg-emerald-600"
           >
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -235,7 +235,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         ) : (
           <Link
             href="/login"
-            className="rounded-full bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-600"
+            className="rounded-full bg-emerald-500 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white transition-colors hover:bg-emerald-600 shrink-0"
           >
             Masuk
           </Link>

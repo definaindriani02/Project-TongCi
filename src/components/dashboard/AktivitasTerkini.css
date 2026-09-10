@@ -332,3 +332,31 @@
   50% { opacity: 1; }
   100% { opacity: 0.6; }
 }
+
+/* =====================================================
+   RESPONSIVE
+==================================================== */
+
+@media (max-width: 540px) {
+  .aktivitas-terkini-container {
+    padding: 16px;
+  }
+
+  .aktivitas-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .aktivitas-item {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .item-name {
+    font-size: 13px;
+  }
+
+  .item-points {
+    font-size: 11px;
+  }
+}

@@ -14,10 +14,11 @@ import {
   User
 } from "lucide-react";
 
-function SidebarLink({ icon, label, href, active, sidebarOpen }) {
+function SidebarLink({ icon, label, href, active, sidebarOpen, onNavigate }) {
   return (
     <Link
       href={href}
+      onClick={onNavigate}
       className={`flex items-center rounded-xl text-xs font-semibold transition-all duration-200 ${
         sidebarOpen ? "px-4 py-2.5 gap-3" : "p-2 justify-center"
       } ${
@@ -26,9 +27,13 @@ function SidebarLink({ icon, label, href, active, sidebarOpen }) {
           : "text-slate-600 hover:bg-[#22C55E]/10 hover:text-[#22C55E]"
       }`}
     >
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-        active ? "bg-white/20 text-white" : "bg-[#22C55E]/10 text-[#22C55E] group-hover:bg-[#22C55E]/20"
-      }`}>
+      <div
+        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+          active
+            ? "bg-white/20 text-white"
+            : "bg-[#22C55E]/10 text-[#22C55E] group-hover:bg-[#22C55E]/20"
+        }`}
+      >
         {icon}
       </div>
       {sidebarOpen && <span>{label}</span>}
@@ -36,7 +41,7 @@ function SidebarLink({ icon, label, href, active, sidebarOpen }) {
   );
 }
 
-export default function Sidebar({ sidebarOpen = true }) {
+export default function Sidebar({ sidebarOpen = true, setSidebarOpen }) {
   const pathname = usePathname();
 
   const links = [
@@ -46,66 +51,116 @@ export default function Sidebar({ sidebarOpen = true }) {
     { icon: <BarChart3 size={16} />, label: "Statistik", href: "/statistik" },
     { icon: <Gift size={16} />, label: "Leaderboard", href: "/leaderboard" },
     { icon: <MessageSquare size={16} />, label: "Chat AI", href: "/chat" },
-    { icon: <User size={16} />, label: "Profil", href: "/profil" }
+    { icon: <User size={16} />, label: "Profil", href: "/profil" },
   ];
 
+  const handleClose = () => {
+    if (setSidebarOpen) {
+      setSidebarOpen(false);
+    }
+  };
+
+  const handleLinkClick = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 768 && setSidebarOpen) {
+      setSidebarOpen(false);
+    }
+  };
+
   return (
-    <aside
-      className={`sticky top-0 h-screen overflow-y-auto bg-white border-r border-slate-100 flex flex-col justify-between p-4 transition-all duration-300 z-40 shrink-0 ${
-        sidebarOpen
-          ? "w-64 flex"
-          : "w-0 p-0 overflow-hidden opacity-0 border-none md:w-20 md:p-4 md:opacity-100 md:border-r md:flex md:items-center"
-      }`}
-    >
-      <div className="w-full">
-        {/* Logo Utama */}
-        <div className={`flex items-center gap-3 py-2 mb-2 ${sidebarOpen ? "px-2" : "justify-center"}`}>
-          <div className="w-14 h-14 relative flex-shrink-0">
-            <Image src="/logo.png" alt="TongCi Logo" fill sizes="56px" className="object-contain scale-110" priority />
-          </div>
-          {sidebarOpen && (
-            <div>
-              <h1 className="font-bold text-lg text-[#22C55E] leading-none tracking-wide">TongCi</h1>
-              <span className="text-xs text-pink-500 font-bold drop-shadow-sm">Sampah Cinta 💕</span>
+    <>
+      {/* Mobile Dark Backdrop */}
+      {sidebarOpen && (
+        <div
+          onClick={handleClose}
+          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden"
+        />
+      )}
+
+      {/* Sidebar Container (Mobile Drawer Overlay & Desktop Fixed Sidebar) */}
+      <aside
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-100 flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out overflow-y-auto ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="w-full">
+          {/* Logo Utama */}
+          <div className="flex items-center justify-between py-2 mb-2 px-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 relative flex-shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="TongCi Logo"
+                  fill
+                  sizes="48px"
+                  className="object-contain scale-110"
+                  priority
+                />
+              </div>
+              <div>
+                <h1 className="font-bold text-lg text-[#22C55E] leading-none tracking-wide">
+                  TongCi
+                </h1>
+                <span className="text-xs text-pink-500 font-bold drop-shadow-sm">
+                  Sampah Cinta 💕
+                </span>
+              </div>
             </div>
-          )}
+
+            {/* Mobile close button */}
+            <button
+              onClick={handleClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 md:hidden cursor-pointer"
+              title="Tutup Navigasi"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Navigasi */}
+          <nav className="space-y-1 w-full mt-2">
+            {links.map((link) => {
+              const isActive =
+                pathname === link.href || pathname?.startsWith(link.href + "/");
+              return (
+                <SidebarLink
+                  key={link.href}
+                  icon={link.icon}
+                  label={link.label}
+                  href={link.href}
+                  active={isActive}
+                  sidebarOpen={true}
+                  onNavigate={handleLinkClick}
+                />
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Navigasi */}
-        <nav className="space-y-1 w-full">
-          {links.map((link) => {
-            // Check active state (starts with or exact match)
-            const isActive = pathname === link.href || pathname?.startsWith(link.href + "/");
-            return (
-              <SidebarLink
-                key={link.href}
-                icon={link.icon}
-                label={link.label}
-                href={link.href}
-                active={isActive}
-                sidebarOpen={sidebarOpen}
-              />
-            );
-          })}
-        </nav>
-      </div>
-
-      {/* Banner Bawah */}
-      {sidebarOpen ? (
-        <Link href="/chat" className="bg-emerald-50/50 rounded-2xl p-3 flex items-center gap-3 border border-emerald-100/50 hover:scale-[1.01] transition-transform w-full mt-4">
+        {/* Banner Bawah */}
+        <Link
+          href="/chat"
+          onClick={handleLinkClick}
+          className="bg-emerald-50/50 rounded-2xl p-3 flex items-center gap-3 border border-emerald-100/50 hover:scale-[1.01] transition-transform w-full mt-4"
+        >
           <div className="w-10 h-10 relative flex-shrink-0">
-            <Image src="/logo.png" alt="CiCi mini" fill sizes="40px" className="object-contain" />
+            <Image
+              src="/logo.png"
+              alt="CiCi mini"
+              fill
+              sizes="40px"
+              className="object-contain"
+            />
           </div>
           <div>
-            <p className="text-xs font-bold text-emerald-800">CiCi siap bantu! 💕</p>
-            <p className="text-[10px] text-emerald-600 font-medium">Klik Chat AI untuk tanya</p>
+            <p className="text-xs font-bold text-emerald-800">
+              CiCi siap bantu! 💕
+            </p>
+            <p className="text-[10px] text-emerald-600 font-medium">
+              Klik Chat AI untuk tanya
+            </p>
           </div>
         </Link>
-      ) : (
-        <Link href="/chat" className="w-10 h-10 relative flex-shrink-0 mt-4 mb-2">
-          <Image src="/logo.png" alt="CiCi mini" fill sizes="40px" className="object-contain" />
-        </Link>
-      )}
-    </aside>
+      </aside>
+    </>
   );
 }

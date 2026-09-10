@@ -324,9 +324,31 @@
 
   .hero-dashboard-actions {
     justify-content: center;
+    flex-wrap: wrap;
   }
 
   .hero-cici-area {
     height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-dashboard-content {
+    padding: 20px 16px;
+  }
+
+  .hero-dashboard-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cici-speech {
+    right: 50%;
+    transform: translateX(50%);
   }
 }

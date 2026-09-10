@@ -32,18 +32,20 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-800 font-sans transition-colors duration-300" suppressHydrationWarning>
+    <div className="relative min-h-screen w-full bg-slate-50 text-slate-800 font-sans overflow-x-hidden" suppressHydrationWarning>
       {/* Collapsible Sidebar */}
-      <Sidebar sidebarOpen={sidebarOpen} />
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main workspace area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`flex min-h-screen flex-col w-full min-w-0 transition-all duration-300 ${sidebarOpen ? "md:pl-64" : "md:pl-0"}`}>
         {/* Dynamic Topbar Header */}
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
         {/* Scrollable page body */}
-        <main className="flex-1 p-6 space-y-6 max-w-7xl w-full mx-auto overflow-y-auto">
-          {children}
+        <main className="flex-1 w-full min-w-0">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-7xl">
+            {children}
+          </div>
         </main>
       </div>
     </div>
