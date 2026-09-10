@@ -1,18 +1,65 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Cropper from "react-easy-crop";
 import {
   Bell,
+  Camera,
   CheckCircle2,
   Eye,
   LockKeyhole,
   Monitor,
   Save,
   Trash2,
+  Upload,
   UserRound,
   X,
 } from "lucide-react";
+
 import { supabase } from "@/lib/supabase";
+
+// Helper Canvas Crop
+const createImage = (url) =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", (error) => reject(error));
+    image.setAttribute("crossOrigin", "anonymous");
+    image.src = url;
+  });
+
+async function getCroppedImg(imageSrc, pixelCrop) {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) return null;
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  );
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((file) => {
+      if (file) {
+        resolve(file);
+      } else {
+        reject(new Error("Canvas kosong"));
+      }
+    }, "image/jpeg");
+  });
+}
 
 const menu = [
   ["Akun", UserRound],
@@ -92,7 +139,7 @@ export default function SettingsPage() {
   const [savingAccount, setSavingAccount] = useState(false);
   const [savingPass, setSavingPass] = useState(false);
 
-  // State Profil Akun (realtime dari Supabase profiles)
+  // State Profil Akun
   const [profile, setProfile] = useState({
     full_name: "",
     email: "",
@@ -100,7 +147,23 @@ export default function SettingsPage() {
     birth_date: "",
     gender: "-",
     address: "",
+    avatar_url: "",
   });
+
+  // State Image Cropper & Upload
+  const [imageSrc, setImageSrc] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // State & Ref Kamera Live
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const videoRef = useRef(null);
+  const [stream, setStream] = useState(null);
+
+  const fileInputRef = useRef(null);
 
   // State Password
   const [passwords, setPasswords] = useState({
@@ -109,7 +172,7 @@ export default function SettingsPage() {
     confirmPass: "",
   });
 
-  // State Switches / Toggles (Notifikasi & Privasi)
+  // State Switches / Toggles
   const [switches, setSwitches] = useState({
     notif_scan: true,
     notif_points: true,
@@ -132,7 +195,16 @@ export default function SettingsPage() {
     setTimeout(() => setToast(""), 3500);
   };
 
-  // Load User Data & Profile dari Supabase
+  const requestNotificationPermission = async () => {
+    if (!("Notification" in window)) return false;
+    if (Notification.permission === "granted") return true;
+    if (Notification.permission !== "denied") {
+      const permission = await Notification.requestPermission();
+      return permission === "granted";
+    }
+    return false;
+  };
+
   useEffect(() => {
     let isMounted = true;
     let profileChannel = null;
@@ -155,7 +227,6 @@ export default function SettingsPage() {
         const uEmail = session.user.email;
         if (isMounted) setUserId(uid);
 
-        // Fetch Supabase profiles
         const { data: profData, error: profError } = await supabase
           .from("profiles")
           .select("*")
@@ -178,6 +249,7 @@ export default function SettingsPage() {
               birth_date: profData.birth_date || "",
               gender: profData.gender || "-",
               address: profData.address || "",
+              avatar_url: profData.avatar_url || "",
             });
 
             setSwitches({
@@ -187,7 +259,8 @@ export default function SettingsPage() {
               notif_app_update: profData.notif_app_update ?? true,
               privacy_public_profile: profData.privacy_public_profile ?? true,
               privacy_show_rank: profData.privacy_show_rank ?? true,
-              privacy_public_activity: profData.privacy_public_activity ?? false,
+              privacy_public_activity:
+                profData.privacy_public_activity ?? false,
             });
 
             setLanguage(profData.lang || "id");
@@ -202,11 +275,11 @@ export default function SettingsPage() {
               birth_date: "",
               gender: "-",
               address: "",
+              avatar_url: "",
             });
           }
         }
 
-        // Realtime listener untuk profil
         profileChannel = supabase
           .channel(`settings-profile-rt-${uid}-${Date.now()}`)
           .on(
@@ -225,10 +298,13 @@ export default function SettingsPage() {
                   full_name: updated.full_name ?? prev.full_name,
                   email: updated.email ?? prev.email,
                   phone_number:
-                    updated.phone_number ?? updated.phone ?? prev.phone_number,
+                    updated.phone_number ??
+                    updated.phone ??
+                    prev.phone_number,
                   birth_date: updated.birth_date ?? prev.birth_date,
                   gender: updated.gender ?? prev.gender,
                   address: updated.address ?? prev.address,
+                  avatar_url: updated.avatar_url ?? prev.avatar_url,
                 }));
 
                 setSwitches({
@@ -236,7 +312,8 @@ export default function SettingsPage() {
                   notif_points: updated.notif_points ?? true,
                   notif_promo: updated.notif_promo ?? false,
                   notif_app_update: updated.notif_app_update ?? true,
-                  privacy_public_profile: updated.privacy_public_profile ?? true,
+                  privacy_public_profile:
+                    updated.privacy_public_profile ?? true,
                   privacy_show_rank: updated.privacy_show_rank ?? true,
                   privacy_public_activity:
                     updated.privacy_public_activity ?? false,
@@ -269,7 +346,6 @@ export default function SettingsPage() {
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Handler Perubahan Input Profil
   const handleProfileChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
@@ -278,7 +354,102 @@ export default function SettingsPage() {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
   };
 
-  // Simpan perubahan profil ke Supabase via PUT /api/profile
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        setImageSrc(reader.result);
+        setShowCropModal(true);
+      });
+      reader.readAsDataURL(file);
+    }
+    e.target.value = "";
+  };
+
+  // --- HANDLER KAMERA LIVE ---
+  const startCamera = async () => {
+    try {
+      setShowCameraModal(true);
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false,
+      });
+      setStream(mediaStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+    } catch (err) {
+      console.error("Gagal mengakses kamera:", err);
+      alert("Tidak dapat mengakses kamera. Pastikan telah memberi izin kamera.");
+      setShowCameraModal(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
+    }
+    setShowCameraModal(false);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const dataUrl = canvas.toDataURL("image/jpeg");
+    setImageSrc(dataUrl);
+    stopCamera();
+    setShowCropModal(true);
+  };
+
+  const onCropComplete = (_, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleSaveCrop = async () => {
+    try {
+      setUploadingAvatar(true);
+      const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      const filePath = `avatars/${userId}-${Date.now()}.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, croppedImageBlob, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const avatarUrl = publicUrlData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+        .eq("id", userId);
+
+      if (updateError) throw updateError;
+
+      setProfile((prev) => ({ ...prev, avatar_url: avatarUrl }));
+      setShowCropModal(false);
+      showNotification("Foto profil berhasil diperbarui! 📸");
+    } catch (error) {
+      console.error("Gagal mengunggah foto profil:", error);
+      alert("Terjadi kesalahan saat mengunggah foto profil.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!userId) {
       alert("Sesi pengguna tidak ditemukan. Silakan login kembali.");
@@ -306,7 +477,6 @@ export default function SettingsPage() {
       const resData = await res.json();
 
       if (!res.ok || resData.error) {
-        // Fallback langsung update Supabase client
         const { error: directError } = await supabase
           .from("profiles")
           .update({
@@ -334,7 +504,6 @@ export default function SettingsPage() {
     }
   };
 
-  // Ubah Password menggunakan API resmi Supabase Auth
   const handleSavePassword = async () => {
     if (!passwords.newPass) {
       alert("Harap masukkan password baru!");
@@ -373,17 +542,26 @@ export default function SettingsPage() {
     }
   };
 
-  // Realtime update untuk Toggle Switch Notifikasi & Privasi
   const handleToggle = async (key) => {
     const newValue = !switches[key];
 
-    // Update state lokal secara responsif
+    if (key.startsWith("notif_") && newValue) {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        new Notification("Notifikasi Diaktifkan 🔔", {
+          body: "Kamu akan menerima pemberitahuan terkait pembaruan ini.",
+          icon: "/favicon.ico",
+        });
+      } else {
+        showNotification("Izin notifikasi browser belum diberikan.");
+      }
+    }
+
     setSwitches((prev) => ({ ...prev, [key]: newValue }));
 
     if (!userId) return;
 
     try {
-      // Direct update ke Supabase secara realtime
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -394,14 +572,10 @@ export default function SettingsPage() {
 
       if (error) {
         console.error(`Gagal update switch ${key}:`, error);
-        // Fallback via API Route
         await fetch("/api/profile", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            [key]: newValue,
-          }),
+          body: JSON.stringify({ userId, [key]: newValue }),
         });
       }
     } catch (err) {
@@ -409,7 +583,6 @@ export default function SettingsPage() {
     }
   };
 
-  // Realtime update untuk Bahasa (Tampilan)
   const handleLanguageChange = async (e) => {
     const selectedLang = e.target.value;
     setLanguage(selectedLang);
@@ -464,7 +637,6 @@ export default function SettingsPage() {
 
   return (
     <div className="relative space-y-6 pb-4 transition-colors duration-300">
-      {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-xs font-bold text-white shadow-xl animate-bounce">
           <CheckCircle2 size={16} />
@@ -482,7 +654,6 @@ export default function SettingsPage() {
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[210px_minmax(0,1fr)]">
-        {/* Navigation Sidebar */}
         <aside className="h-fit rounded-3xl border border-slate-100 bg-white p-3 shadow-sm">
           <nav className="flex gap-1 overflow-x-auto lg:flex-col">
             {menu.map(([item, Icon]) => (
@@ -503,14 +674,60 @@ export default function SettingsPage() {
           </nav>
         </aside>
 
-        {/* Content Form */}
         <div className="space-y-7 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm md:p-7">
-          {/* Tab Akun */}
           <Section
             id="akun"
             title="Akun"
-            description="Perbarui informasi dasar untuk akun TongCi Anda."
+            description="Perbarui informasi dasar untuk akun Anda."
           >
+            {/* FITUR FOTO PROFIL */}
+            <div className="mb-8 flex flex-col items-center justify-center">
+              <div className="relative group">
+                <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-emerald-500/20 bg-slate-100 shadow-inner flex items-center justify-center">
+                  {profile.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt="Foto Profil"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <UserRound size={56} className="text-slate-300" />
+                  )}
+                </div>
+              </div>
+
+              <p className="mt-2 text-center text-[11px] font-semibold text-slate-500">
+                Foto Profil
+              </p>
+
+              {/* Tombol Kamera & Galeri */}
+              <div className="mt-3 flex items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  onClick={startCamera}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95"
+                >
+                  <Camera size={14} className="text-emerald-600" /> Kamera
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm transition hover:bg-slate-50 active:scale-95"
+                >
+                  <Upload size={14} className="text-emerald-600" /> Unggah Foto
+                </button>
+              </div>
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
                 label="Nama Lengkap"
@@ -581,7 +798,6 @@ export default function SettingsPage() {
             </button>
           </Section>
 
-          {/* Tab Keamanan */}
           <Section
             id="keamanan"
             title="Keamanan"
@@ -624,7 +840,6 @@ export default function SettingsPage() {
             </button>
           </Section>
 
-          {/* Tab Notifikasi */}
           <Section
             id="notifikasi"
             title="Notifikasi"
@@ -633,12 +848,11 @@ export default function SettingsPage() {
             {renderOptions([
               ["Notifikasi Scan", "Dapatkan kabar setelah scan diproses.", "notif_scan"],
               ["Notifikasi Poin", "Kabar saat poin berhasil ditambahkan.", "notif_points"],
-              ["Email Promosi", "Penawaran dan reward terbaru dari TongCi.", "notif_promo"],
+              ["Email Promosi", "Penawaran dan reward terbaru.", "notif_promo"],
               ["Update Aplikasi", "Informasi fitur dan pembaruan aplikasi.", "notif_app_update"],
             ])}
           </Section>
 
-          {/* Tab Tampilan */}
           <Section
             id="tampilan"
             title="Tampilan"
@@ -663,11 +877,10 @@ export default function SettingsPage() {
             </div>
           </Section>
 
-          {/* Tab Privasi */}
           <Section
             id="privasi"
             title="Privasi"
-            description="Atur visibilitas informasi Anda di komunitas TongCi."
+            description="Atur visibilitas informasi Anda di komunitas."
           >
             {renderOptions([
               [
@@ -688,7 +901,6 @@ export default function SettingsPage() {
             ])}
           </Section>
 
-          {/* Zona Berbahaya */}
           <section className="rounded-2xl border border-pink-100 bg-pink-50 p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -712,7 +924,117 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Modal Hapus Akun */}
+      {/* MODAL KAMERA LIVE */}
+      {showCameraModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md space-y-4 rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-slate-800">
+                Ambil Foto Profil
+              </h3>
+              <button
+                onClick={stopCamera}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="relative h-64 w-full overflow-hidden rounded-2xl bg-black">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={capturePhoto}
+                className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-600"
+              >
+                Ambil Foto
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CROP GAMBAR */}
+      {showCropModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md space-y-4 rounded-3xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-slate-800">
+                Potong Foto Profil
+              </h3>
+              <button
+                onClick={() => setShowCropModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="relative h-64 w-full overflow-hidden rounded-2xl bg-slate-900">
+              <Cropper
+                image={imageSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-bold text-slate-500">Zoom</span>
+              <input
+                type="range"
+                value={zoom}
+                min={1}
+                max={3}
+                step={0.1}
+                aria-label="Zoom"
+                onChange={(e) => setZoom(Number(e.target.value))}
+                className="w-full accent-emerald-500"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowCropModal(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveCrop}
+                disabled={uploadingAvatar}
+                className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-600 disabled:opacity-50"
+              >
+                {uploadingAvatar ? "Mengunggah..." : "Simpan & Terapkan"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL HAPUS AKUN */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm space-y-4 rounded-3xl bg-white p-6 shadow-xl">
@@ -729,16 +1051,18 @@ export default function SettingsPage() {
             </div>
             <p className="text-xs leading-relaxed text-slate-500">
               Apakah kamu yakin ingin menghapus akun ini? Semua poin dan riwayat
-              scan kamu akan hilang permanen.
+              kamu akan hilang permanen.
             </p>
             <div className="flex justify-end gap-2">
               <button
+                type="button"
                 onClick={() => setShowDeleteModal(false)}
                 className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
               >
                 Batal
               </button>
               <button
+                type="button"
                 onClick={handleDeleteAccount}
                 className="rounded-xl bg-pink-500 px-4 py-2 text-xs font-bold text-white hover:bg-pink-600"
               >

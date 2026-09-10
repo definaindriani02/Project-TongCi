@@ -10,13 +10,35 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [points, setPoints] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0); // <-- State untuk hitung notif unread
   const pathname = usePathname();
 
   useEffect(() => {
     let profileChannel = null;
+    let notifChannel = null;
+
+    // Helper untuk mengambil jumlah notifikasi unread dari Supabase
+    const fetchUnreadCount = async (userId) => {
+      try {
+        const { count, error } = await supabase
+          .from("notifications") // Pastikan nama tabel kamu 'notifications'
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("is_read", false); // Hanya hitung yang BELUM dibaca
+
+        if (!error && count !== null) {
+          setUnreadCount(count);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil unread notifications:", err);
+      }
+    };
 
     const checkUserAndProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (session?.user) {
         const currentUser = session.user;
         setUser(currentUser);
@@ -35,7 +57,10 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           setPoints(0);
         }
 
-        // Setup realtime listener for profile updates safely
+        // Fetch Unread Notifications awal
+        fetchUnreadCount(currentUser.id);
+
+        // Setup realtime listener for profile updates
         const channelId = `header-profile-${currentUser.id}-${Date.now()}`;
         profileChannel = supabase
           .channel(channelId)
@@ -55,14 +80,36 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
             }
           )
           .subscribe();
+
+        // Setup realtime listener untuk NOTIFIKASI
+        const notifChannelId = `header-notif-${currentUser.id}-${Date.now()}`;
+        notifChannel = supabase
+          .channel(notifChannelId)
+          .on(
+            "postgres_changes",
+            {
+              event: "*", // Listen INSERT, UPDATE, DELETE
+              schema: "public",
+              table: "notifications",
+              filter: `user_id=eq.${currentUser.id}`,
+            },
+            () => {
+              // Setiap ada update/insert di tabel notifications, refresh hitungan
+              fetchUnreadCount(currentUser.id);
+            }
+          )
+          .subscribe();
       }
     };
 
     checkUserAndProfile();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user);
+        fetchUnreadCount(session.user.id);
         const { data: prof } = await supabase
           .from("profiles")
           .select("*")
@@ -76,14 +123,14 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         setUser(null);
         setProfile(null);
         setPoints(0);
+        setUnreadCount(0);
       }
     });
 
     return () => {
       subscription?.unsubscribe();
-      if (profileChannel) {
-        supabase.removeChannel(profileChannel);
-      }
+      if (profileChannel) supabase.removeChannel(profileChannel);
+      if (notifChannel) supabase.removeChannel(notifChannel);
     };
   }, []);
 
@@ -112,57 +159,75 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
     if (pathname === "/statistik") return "Statistik";
     if (pathname === "/leaderboard") return "Leaderboard & Reward";
     if (pathname === "/chat") return "CiCi Chat AI";
-    if (pathname === "/profil" || pathname === "/profile") return "Profil Pengguna";
+    if (pathname === "/profil" || pathname === "/profile")
+      return "Profil Pengguna";
     if (pathname === "/settings") return "Pengaturan";
+    if (pathname === "/notifications") return "Notifikasi";
     return "TongCi";
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 gap-4 sticky top-0 z-30">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-slate-100 bg-white px-6">
       <div className="flex items-center gap-3">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="text-emerald-700 hover:text-emerald-500 p-1.5 rounded-lg hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
+          className="cursor-pointer rounded-lg p-1.5 text-emerald-700 transition-all hover:bg-slate-50 hover:text-emerald-500 active:scale-95"
           title="Toggle Navigation Menu"
         >
           <Menu size={20} />
         </button>
-        <h2 className="font-bold text-emerald-800 text-sm tracking-wide hidden sm:block">
+        <h2 className="hidden text-sm font-bold tracking-wide text-emerald-800 sm:block">
           {getPageTitle()}
         </h2>
       </div>
 
-      <div className="relative flex-1 max-w-md">
+      <div className="relative max-w-md flex-1">
         <Search className="absolute left-4 top-2.5 h-4 w-4 text-emerald-500" />
         <input
           type="text"
           placeholder="Cari fitur, tips, informasi..."
-          className="w-full pl-10 pr-4 py-2 bg-emerald-50/40 border border-emerald-100/60 rounded-full text-xs text-emerald-800 focus:outline-none focus:border-emerald-500 transition-colors"
+          className="w-full rounded-full border border-emerald-100/60 bg-emerald-50/40 py-2 pl-10 pr-4 text-xs text-emerald-800 transition-colors focus:border-emerald-500 focus:outline-none"
         />
       </div>
 
       <div className="flex items-center gap-4">
         {user && (
-          <Link href="/profil" className="flex items-center gap-1.5 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full text-xs font-bold text-amber-700 hover:bg-amber-100 transition-colors">
+          <Link
+            href="/profil"
+            className="flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 transition-colors hover:bg-amber-100"
+          >
             <Award size={14} className="text-amber-500" />
             <span>{points.toLocaleString("id-ID")} Pts</span>
           </Link>
         )}
 
-        <button className="text-emerald-500 hover:text-emerald-600 relative p-1 cursor-pointer" title="Notifikasi">
+        {/* Tombol Lonceng Notifikasi yang Dinamis */}
+        <Link
+          href="/notifications"
+          className="relative cursor-pointer p-1 text-emerald-500 transition-transform hover:text-emerald-600 active:scale-95"
+          title="Notifikasi"
+        >
           <Bell size={20} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full"></span>
-        </button>
+          
+          {/* Titik merah HANYA dirender jika unreadCount > 0 */}
+          {unreadCount > 0 && (
+            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-pink-500 ring-2 ring-white"></span>
+          )}
+        </Link>
 
         {user ? (
           <Link
             href="/profil"
             title={`Profil: ${displayName}`}
-            className="w-9 h-9 bg-emerald-500 text-white font-extrabold rounded-full flex items-center justify-center text-sm hover:bg-emerald-600 transition-all shadow-sm overflow-hidden shrink-0"
+            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-500 text-sm font-extrabold text-white shadow-sm transition-all hover:bg-emerald-600"
           >
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="h-full w-full object-cover"
+              />
             ) : (
               getInitial()
             )}
@@ -170,7 +235,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         ) : (
           <Link
             href="/login"
-            className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors"
+            className="rounded-full bg-emerald-500 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-600"
           >
             Masuk
           </Link>

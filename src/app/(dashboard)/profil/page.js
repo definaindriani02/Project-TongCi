@@ -137,6 +137,7 @@ export default function ProfilPage() {
           gender: "-",
           birth_date: "-",
           address: "-",
+          avatar_url: "",
           points: 0,
           total_scan: 0,
         };
@@ -145,7 +146,7 @@ export default function ProfilPage() {
           setProfile(currentProfile);
         }
 
-        // Ambil data scan (realtime synced logic dengan Dashboard)
+        // Ambil data scan
         await fetchScanData(userId);
 
         // Hitung Ranking Leaderboard
@@ -275,10 +276,25 @@ export default function ProfilPage() {
 
   const stats = [
     ["Total Scan", `${scanCount}`, ScanLine, "text-emerald-600 bg-emerald-50"],
-    ["Total Poin", (profile?.points || 0).toLocaleString("id-ID"), Award, "text-amber-600 bg-amber-50"],
-    ["Level User", (profile?.points || 0) > 500 ? "Eco Hero" : "Eco Warrior", ShieldCheck, "text-violet-600 bg-violet-50"],
+    [
+      "Total Poin",
+      (profile?.points || 0).toLocaleString("id-ID"),
+      Award,
+      "text-amber-600 bg-amber-50",
+    ],
+    [
+      "Level User",
+      (profile?.points || 0) > 500 ? "Eco Hero" : "Eco Warrior",
+      ShieldCheck,
+      "text-violet-600 bg-violet-50",
+    ],
     ["Rank Leaderboard", userRank, Award, "text-sky-600 bg-sky-50"],
-    ["Sampah Didaur Ulang", `${recycledKg} kg`, Recycle, "text-teal-600 bg-teal-50"],
+    [
+      "Sampah Didaur Ulang",
+      `${recycledKg} kg`,
+      Recycle,
+      "text-teal-600 bg-teal-50",
+    ],
   ];
 
   return (
@@ -298,8 +314,17 @@ export default function ProfilPage() {
         <div className="absolute -right-10 -top-12 h-44 w-44 rounded-full bg-white/10" />
         <div className="relative flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:text-left">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-white/30 bg-white text-xl font-extrabold text-emerald-600 shadow-lg">
-              {getInitials(profile?.full_name)}
+            {/* AVATAR DENGAN CHECKER DARI PROFILE.AVATAR_URL */}
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white/30 bg-white text-xl font-extrabold text-emerald-600 shadow-lg">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile?.full_name || "Foto Profil"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                getInitials(profile?.full_name)
+              )}
             </div>
             <div className="text-center sm:text-left">
               <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider">

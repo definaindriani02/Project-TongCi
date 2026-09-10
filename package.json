@@ -11,12 +11,15 @@
   "dependencies": {
     "@google/genai": "^2.21.0",
     "@google/generative-ai": "^0.24.1",
-    "@supabase/supabase-js": "^2.112.0",
+    "@supabase/auth-helpers-nextjs": "^0.15.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
     "framer-motion": "^12.43.0",
     "lucide-react": "^1.28.0",
     "next": "^16.2.10",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-easy-crop": "^6.2.3",
     "recharts": "^3.10.1"
   },
   "devDependencies": {
