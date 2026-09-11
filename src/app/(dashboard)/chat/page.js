@@ -102,7 +102,7 @@ export default function ChatPage() {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 relative bg-white border border-emerald-100 rounded-full flex items-center justify-center shrink-0">
             <Image
-              src="/logo.png"
+              src="/CICI.png"
               alt="CiCi"
               fill
               sizes="40px"
@@ -129,26 +129,23 @@ export default function ChatPage() {
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`flex items-start gap-3 max-w-[80%] ${
-              msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
-            }`}
+            className={`flex items-start gap-3 max-w-[80%] ${msg.sender === "user" ? "ml-auto flex-row-reverse" : ""
+              }`}
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 shadow-sm ${
-                msg.sender === "user"
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 shadow-sm ${msg.sender === "user"
                   ? "bg-emerald-500 text-white"
                   : "bg-white border border-slate-100"
-              }`}
+                }`}
             >
               {msg.sender === "user" ? "👤" : "🤖"}
             </div>
 
             <div
-              className={`p-3 rounded-2xl text-xs leading-relaxed whitespace-pre-line font-medium shadow-sm border ${
-                msg.sender === "user"
+              className={`p-3 rounded-2xl text-xs leading-relaxed whitespace-pre-line font-medium shadow-sm border ${msg.sender === "user"
                   ? "bg-emerald-500 text-white border-emerald-600 rounded-tr-none"
                   : "bg-white text-slate-800 border-slate-100 rounded-tl-none"
-              }`}
+                }`}
             >
               {msg.text}
             </div>

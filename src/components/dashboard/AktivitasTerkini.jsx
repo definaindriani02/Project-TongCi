@@ -24,6 +24,9 @@ const getCategoryBadge = (category = "") => {
   if (cat.includes("b3") || cat.includes("bahaya") || cat.includes("elektronik")) {
     return { label: "B3 / Bahaya", className: "badge-b3", icon: "⚠️" };
   }
+  if (cat.includes("reward") || cat.includes("tukar") || cat.includes("klaim")) {
+    return { label: "Reward", className: "badge-reward", icon: "🎁" };
+  }
   return { label: category || "Anorganik", className: "badge-anorganik", icon: "♻️" };
 };
 
@@ -58,12 +61,12 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
             <Clock size={18} />
           </div>
           <div>
-            <h3>Aktivitas Terkini</h3>
-            <p>Riwayat pemilahan & scan sampah terbaru</p>
+            <h3>Aktivitas Terbaru</h3>
+            <p>Riwayat aktivitas pemilahan & penukaran poin Anda</p>
           </div>
         </div>
 
-        <Link href="/profil" className="btn-see-all">
+        <Link href="/riwayat" className="btn-see-all">
           <span>Lihat Semua</span>
           <ChevronRight size={14} />
         </Link>
@@ -94,7 +97,7 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
               <Inbox size={28} />
             </div>
             <h4>Belum Ada Aktivitas</h4>
-            <p>Mulai memilah dan scan sampah pertamamu untuk mengumpulkan poin!</p>
+            <p>Mulai memilah sampah atau menukarkan poin untuk melihat aktivitas di sini!</p>
             <Link href="/scan" className="btn-empty-scan">
               <Camera size={14} />
               <span>Scan Sampah Sekarang</span>
@@ -104,9 +107,8 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
           // DATA SCANS
           scans.map((item, index) => {
             const badge = getCategoryBadge(item.category);
-            const confVal = typeof item.confidence === "number"
-              ? (item.confidence <= 1 ? Math.round(item.confidence * 100) : Math.round(item.confidence))
-              : null;
+            const pts = item.points_awarded ?? item.points_earned ?? 18;
+            const isDeduction = pts < 0 || (item.category || "").toLowerCase().includes("reward");
 
             return (
               <motion.div
@@ -123,17 +125,9 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
 
                 {/* DETAILS */}
                 <div className="item-details">
-                  <h4 className="item-name">{item.item_name || item.waste_name || "Sampah Terdeteksi"}</h4>
+                  <h4 className="item-name">{item.item_name || item.waste_name || "Aktivitas"}</h4>
                   <div className="item-meta">
                     <span className="item-time">{formatTimeAgo(item.created_at)}</span>
-                    {confVal && (
-                      <>
-                        <span className="meta-dot">•</span>
-                        <span className="item-confidence">
-                          Akurasi {confVal}%
-                        </span>
-                      </>
-                    )}
                   </div>
                 </div>
 
@@ -142,8 +136,8 @@ export default function AktivitasTerkini({ scans = [], loading = false }) {
                   <span className={`category-badge ${badge.className}`}>
                     {badge.label}
                   </span>
-                  <span className="item-points">
-                    +{item.points_awarded ?? item.points_earned ?? 18} Pts
+                  <span className={`item-points ${isDeduction ? "item-points-deduction" : ""}`}>
+                    {isDeduction ? `${pts > 0 ? `-${pts}` : pts} Pts` : `+${pts} Pts`}
                   </span>
                 </div>
               </motion.div>

@@ -18,6 +18,30 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+// Helper badge kategori profil
+const getCategoryBadgeStyle = (category = "") => {
+  const cat = (category || "").toLowerCase();
+  if (cat.includes("reward") || cat.includes("tukar") || cat.includes("klaim")) {
+    return { label: "Reward", className: "bg-pink-100 text-pink-700", icon: "🎁" };
+  }
+  if (cat.includes("organik") && !cat.includes("anorganik")) {
+    return { label: "Organik", className: "bg-emerald-100 text-emerald-700", icon: "🥬" };
+  }
+  if (cat.includes("plastik")) {
+    return { label: "Plastik", className: "bg-sky-100 text-sky-700", icon: "🧴" };
+  }
+  if (cat.includes("kertas")) {
+    return { label: "Kertas", className: "bg-amber-100 text-amber-700", icon: "📦" };
+  }
+  if (cat.includes("logam") || cat.includes("besi") || cat.includes("kaleng")) {
+    return { label: "Logam", className: "bg-slate-200 text-slate-700", icon: "🥫" };
+  }
+  if (cat.includes("b3") || cat.includes("bahaya") || cat.includes("elektronik")) {
+    return { label: "B3 / Bahaya", className: "bg-rose-100 text-rose-700", icon: "⚠️" };
+  }
+  return { label: category || "Anorganik", className: "bg-blue-100 text-blue-700", icon: "♻️" };
+};
+
 export default function ProfilPage() {
   const [profile, setProfile] = useState(null);
   const [scanCount, setScanCount] = useState(0);
@@ -33,12 +57,13 @@ export default function ProfilPage() {
     let profileChannel = null;
 
     const fetchScanData = async (userId) => {
-      // 1. Hitung Total Scan & Estimasi Berat (Kg)
+      // 1. Hitung Total Scan & Estimasi Berat (Kg) (Hanya scan fisik, kecualikan Reward)
       let count = 0;
       const { count: historyCount, error: historyCountErr } = await supabase
         .from("scan_history")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .neq("category", "Reward");
 
       if (!historyCountErr && typeof historyCount === "number") {
         count = historyCount;
@@ -58,22 +83,23 @@ export default function ProfilPage() {
         setRecycledKg((count * 0.15).toFixed(1).replace(".", ","));
       }
 
-      // 2. Ambil Riwayat Scan Terbaru (4 item)
+      // 2. Ambil Riwayat Aktivitas Terbaru (Scan & Penukaran Poin)
       let recentList = [];
       const { data: historyData, error: historyErr } = await supabase
         .from("scan_history")
         .select("id, waste_name, item_name, category, points_earned, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(4);
+        .limit(6);
 
       if (!historyErr && historyData && historyData.length > 0) {
         recentList = historyData.map((item) => ({
           id: item.id,
-          item_name: item.item_name || item.waste_name || "Sampah Terdeteksi",
-          category: item.category || "Anorganik",
-          points_awarded: item.points_earned ?? 18,
-          points_earned: item.points_earned ?? 18,
+          item_name: item.item_name || item.waste_name || "Aktivitas",
+          waste_name: item.waste_name || item.item_name || "Aktivitas",
+          category: item.category || (item.points_earned < 0 ? "Reward" : "Organik"),
+          points_awarded: item.points_earned ?? 0,
+          points_earned: item.points_earned ?? 0,
           created_at: item.created_at,
         }));
       } else {
@@ -408,22 +434,26 @@ export default function ProfilPage() {
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-extrabold text-slate-800">
-              Riwayat Aktivitas
+              Riwayat Aktivitas Anda
             </h2>
             <p className="mt-1 text-[11px] text-slate-400">
-              Aktivitas scan sampah terbaru Anda.
+              Catatan riwayat aktivitas pemilahan sampah dan penukaran poin terbaru Anda.
             </p>
           </div>
-          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-extrabold text-emerald-600">
-            {recentScans.length} Aktivitas
-          </span>
+          <Link
+            href="/riwayat"
+            className="rounded-full bg-emerald-50 hover:bg-emerald-100 px-3 py-1 text-[10px] font-extrabold text-emerald-700 transition-colors"
+          >
+            Lihat Semua →
+          </Link>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[600px] text-left">
             <thead className="border-y border-slate-100 bg-slate-50 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
               <tr>
                 <th className="px-4 py-3">Tanggal</th>
-                <th className="px-4 py-3">Jenis Sampah</th>
+                <th className="px-4 py-3">Nama Aktivitas / Item</th>
+                <th className="px-4 py-3">Kategori</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Poin</th>
               </tr>
@@ -432,34 +462,52 @@ export default function ProfilPage() {
               {recentScans.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={4}
+                    colSpan={5}
                     className="py-6 text-center text-xs font-medium text-slate-400"
                   >
-                    Belum ada riwayat scan sampah.
+                    Belum ada riwayat aktivitas.
                   </td>
                 </tr>
               ) : (
-                recentScans.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="transition-colors hover:bg-emerald-50/40"
-                  >
-                    <td className="px-4 py-3 text-xs font-medium text-slate-500">
-                      {formatDate(item.created_at)}
-                    </td>
-                    <td className="px-4 py-3 text-xs font-bold text-slate-700">
-                      {item.item_name}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[9px] font-extrabold text-emerald-700">
-                        Berhasil
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right text-xs font-extrabold text-amber-600">
-                      +{item.points_awarded || 0} Pts
-                    </td>
-                  </tr>
-                ))
+                recentScans.map((item) => {
+                  const badge = getCategoryBadgeStyle(item.category);
+                  const pts = item.points_awarded ?? item.points_earned ?? 0;
+                  const isDeduction = pts < 0 || (item.category || "").toLowerCase().includes("reward");
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className="transition-colors hover:bg-emerald-50/40"
+                    >
+                      <td className="px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap">
+                        {formatDate(item.created_at)}
+                      </td>
+                      <td className="px-4 py-3 text-xs font-bold text-slate-700">
+                        <div className="flex items-center gap-2">
+                          <span>{badge.icon}</span>
+                          <span>{item.item_name || item.waste_name || "Aktivitas"}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`rounded-full px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider ${badge.className}`}>
+                          {badge.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[9px] font-extrabold text-emerald-700">
+                          Berhasil
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs font-extrabold whitespace-nowrap">
+                        <span className={isDeduction ? "text-rose-600" : "text-amber-600"}>
+                          {isDeduction
+                            ? `${pts > 0 ? `-${pts}` : pts} Pts`
+                            : `+${pts} Pts`}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

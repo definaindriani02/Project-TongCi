@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }) {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
-        router.push("/login");
+        window.location.href = "/login";
       } else {
         setCheckingAuth(false);
       }
@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }) {
 
         {/* Scrollable page body */}
         <main className="flex-1 w-full min-w-0">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-7xl">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             {children}
           </div>
         </main>

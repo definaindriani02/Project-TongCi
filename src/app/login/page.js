@@ -42,7 +42,7 @@ export default function Login() {
       return;
     }
 
-    router.push("/dashboard");
+    window.location.href = "/dashboard";
   };
 
   const handleGoogleLogin = async () => {

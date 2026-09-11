@@ -870,7 +870,6 @@ export default function SettingsPage() {
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50"
                   >
                     <option value="id">Bahasa Indonesia</option>
-                    <option value="en">English</option>
                   </select>
                 </label>
               </div>

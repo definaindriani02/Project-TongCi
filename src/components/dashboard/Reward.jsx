@@ -20,7 +20,7 @@ const REWARD_ITEMS = [
     id: "r1",
     title: "Saldo GoPay Rp 10.000",
     category: "ewallet",
-    pointsCost: 100,
+    pointsCost: 40,
     image: "📱",
     stock: 25,
     description: "Voucher saldo GoPay langsung masuk ke nomor HP terdaftar.",
@@ -38,7 +38,7 @@ const REWARD_ITEMS = [
     id: "r3",
     title: "Voucher Toko Kelontong Eco 15%",
     category: "voucher",
-    pointsCost: 80,
+    pointsCost: 20,
     image: "🏷️",
     stock: 50,
     description: "Diskon belanja produk ramah lingkungan di partner TongCi.",
@@ -56,7 +56,7 @@ const REWARD_ITEMS = [
     id: "r5",
     title: "Totebag Blacu Ramah Lingkungan",
     category: "merch",
-    pointsCost: 500,
+    pointsCost: 100,
     image: "🛍️",
     stock: 15,
     description: "Tas belanja kain tahan beban hingga 10kg.",
@@ -65,7 +65,7 @@ const REWARD_ITEMS = [
     id: "r6",
     title: "Voucher Bibit Tanaman 🌱",
     category: "voucher",
-    pointsCost: 150,
+    pointsCost: 30,
     image: "🪴",
     stock: 30,
     description: "Klaim 2 bibit tanaman buah/sayur gratis di Bank Sampah mitra.",
@@ -102,7 +102,7 @@ export default function Reward({ points = 0, onRedeemSuccess }) {
 
     try {
       if (onRedeemSuccess) {
-        await onRedeemSuccess(selectedReward.pointsCost);
+        await onRedeemSuccess(selectedReward.pointsCost, selectedReward);
       }
       setIsRedeeming(false);
       setRedeemStatus("success");

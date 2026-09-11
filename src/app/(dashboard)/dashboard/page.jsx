@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import HeroDashboard from "@/components/dashboard/HeroDashboard";
@@ -24,138 +24,140 @@ export default function Dashboard() {
 
   // LOADING
   const [loading, setLoading] = useState(true);
+  const isMountedRef = useRef(true);
 
-  useEffect(() => {
-    let isMounted = true;
-    let scanChannel = null;
-    let profileChannel = null;
+  const fetchDashboardData = useCallback(async (userId) => {
+    try {
+      // ==========================================
+      // 1. PROFILE & AUTO-UPSERT FOR NEW USERS (OAuth / Register)
+      // ==========================================
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
 
-    const fetchDashboardData = async (userId) => {
-      try {
-        // ==========================================
-        // 1. PROFILE & AUTO-UPSERT FOR NEW USERS (OAuth / Register)
-        // ==========================================
-        const { data: profileData, error: profileError } = await supabase
+      let currentProfile = profileData;
+
+      if (!currentProfile) {
+        // If no profile entry exists yet, auto-create one connected with profiles table
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        const defaultName =
+          currentUser?.user_metadata?.full_name ||
+          currentUser?.user_metadata?.name ||
+          currentUser?.email?.split("@")[0] ||
+          "Sobat TongCi";
+        const defaultAvatar =
+          currentUser?.user_metadata?.avatar_url ||
+          currentUser?.user_metadata?.picture ||
+          null;
+
+        const newProfilePayload = {
+          id: userId,
+          full_name: defaultName,
+          email: currentUser?.email || "",
+          points: 0,
+          total_scan: 0,
+          avatar_url: defaultAvatar,
+        };
+
+        const { data: createdProfile, error: createError } = await supabase
           .from("profiles")
-          .select("*")
-          .eq("id", userId)
+          .upsert(newProfilePayload)
+          .select()
           .maybeSingle();
 
-        let currentProfile = profileData;
-
-        if (!currentProfile) {
-          // If no profile entry exists yet, auto-create one connected with profiles table
-          const { data: { user: currentUser } } = await supabase.auth.getUser();
-          const defaultName =
-            currentUser?.user_metadata?.full_name ||
-            currentUser?.user_metadata?.name ||
-            currentUser?.email?.split("@")[0] ||
-            "Sobat TongCi";
-          const defaultAvatar =
-            currentUser?.user_metadata?.avatar_url ||
-            currentUser?.user_metadata?.picture ||
-            null;
-
-          const newProfilePayload = {
-            id: userId,
-            full_name: defaultName,
-            email: currentUser?.email || "",
-            points: 0,
-            total_scan: 0,
-            avatar_url: defaultAvatar,
-          };
-
-          const { data: createdProfile, error: createError } = await supabase
-            .from("profiles")
-            .upsert(newProfilePayload)
-            .select()
-            .maybeSingle();
-
-          if (!createError && createdProfile) {
-            currentProfile = createdProfile;
-          } else {
-            currentProfile = newProfilePayload;
-          }
+        if (!createError && createdProfile) {
+          currentProfile = createdProfile;
+        } else {
+          currentProfile = newProfilePayload;
         }
+      }
 
-        if (isMounted) {
-          setProfile(currentProfile);
-        }
+      if (isMountedRef.current) {
+        setProfile(currentProfile);
+      }
 
-        // ==========================================
-        // 2. TOTAL SCAN & ESTIMATED RECYCLING
-        // ==========================================
-        let count = 0;
-        const { count: historyCount, error: historyCountErr } = await supabase
-          .from("scan_history")
+      // ==========================================
+      // 2. TOTAL SCAN & ESTIMATED RECYCLING (Exclude Reward Redemptions)
+      // ==========================================
+      let count = 0;
+      const { count: historyCount, error: historyCountErr } = await supabase
+        .from("scan_history")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .neq("category", "Reward");
+
+      if (!historyCountErr && typeof historyCount === "number") {
+        count = historyCount;
+      } else {
+        // Fallback ke tabel scans
+        const { count: scansCount, error: scanCountError } = await supabase
+          .from("scans")
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId);
 
-        if (!historyCountErr && typeof historyCount === "number") {
-          count = historyCount;
-        } else {
-          // Fallback ke tabel scans
-          const { count: scansCount, error: scanCountError } = await supabase
-            .from("scans")
-            .select("*", { count: "exact", head: true })
-            .eq("user_id", userId);
-
-          if (!scanCountError && typeof scansCount === "number") {
-            count = scansCount;
-          }
+        if (!scanCountError && typeof scansCount === "number") {
+          count = scansCount;
         }
-
-        if (isMounted) {
-          setScanCount(count || 0);
-        }
-
-        // ==========================================
-        // 3. AKTIVITAS TERKINI (RECENT SCANS)
-        // ==========================================
-        let recentScansList = [];
-        const { data: historyData, error: historyErr } = await supabase
-          .from("scan_history")
-          .select("id, waste_name, item_name, category, confidence, points_earned, created_at")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(6);
-
-        if (!historyErr && historyData && historyData.length > 0) {
-          recentScansList = historyData.map((item) => ({
-            id: item.id,
-            item_name: item.item_name || item.waste_name || "Sampah Terdeteksi",
-            waste_name: item.waste_name || item.item_name || "Sampah Terdeteksi",
-            category: item.category || "Anorganik",
-            confidence: item.confidence ?? 85,
-            points_awarded: item.points_earned ?? 18,
-            points_earned: item.points_earned ?? 18,
-            created_at: item.created_at,
-          }));
-        } else {
-          // Fallback jika tabel scans ada
-          try {
-            const { data: recentData, error: recentError } = await supabase
-              .from("scans")
-              .select("id, item_name, category, confidence, points_awarded, created_at")
-              .eq("user_id", userId)
-              .order("created_at", { ascending: false })
-              .limit(6);
-
-            if (!recentError && recentData && recentData.length > 0) {
-              recentScansList = recentData;
-            }
-          } catch (e) {
-            // Abaikan fallback error
-          }
-        }
-
-        if (isMounted) {
-          setRecentScans(recentScansList || []);
-        }
-      } catch (error) {
-        console.error("Dashboard fetch error:", error);
       }
-    };
+
+      if (isMountedRef.current) {
+        setScanCount(count || 0);
+      }
+
+      // ==========================================
+      // 3. AKTIVITAS TERKINI (RECENT SCANS & REWARD REDEMPTIONS)
+      // ==========================================
+      let recentScansList = [];
+      const { data: historyData, error: historyErr } = await supabase
+        .from("scan_history")
+        .select("id, waste_name, item_name, category, confidence, points_earned, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(6);
+
+      if (!historyErr && historyData && historyData.length > 0) {
+        recentScansList = historyData.map((item) => ({
+          id: item.id,
+          item_name: item.item_name || item.waste_name || "Aktivitas",
+          waste_name: item.waste_name || item.item_name || "Aktivitas",
+          category: item.category || (item.points_earned < 0 ? "Reward" : "Organik"),
+          confidence: item.confidence ?? 85,
+          points_awarded: item.points_earned ?? 18,
+          points_earned: item.points_earned ?? 18,
+          created_at: item.created_at,
+        }));
+      } else {
+        // Fallback jika tabel scans ada
+        try {
+          const { data: recentData, error: recentError } = await supabase
+            .from("scans")
+            .select("id, item_name, category, confidence, points_awarded, created_at")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(6);
+
+          if (!recentError && recentData && recentData.length > 0) {
+            recentScansList = recentData;
+          }
+        } catch (e) {
+          // Abaikan fallback error
+        }
+      }
+
+      if (isMountedRef.current) {
+        setRecentScans(recentScansList || []);
+      }
+    } catch (error) {
+      console.error("Dashboard fetch error:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    let scanChannel = null;
+    let profileChannel = null;
 
     const initializeDashboard = async () => {
       try {
@@ -174,7 +176,7 @@ export default function Dashboard() {
           return;
         }
 
-        if (!isMounted) return;
+        if (!isMountedRef.current) return;
 
         setUser(currentUser);
         const userId = currentUser.id;
@@ -182,7 +184,7 @@ export default function Dashboard() {
         // INITIAL FETCH
         await fetchDashboardData(userId);
 
-        if (!isMounted) return;
+        if (!isMountedRef.current) return;
 
         setLoading(false);
 
@@ -250,7 +252,7 @@ export default function Dashboard() {
           });
       } catch (error) {
         console.error("Gagal memuat dashboard:", error);
-        if (isMounted) {
+        if (isMountedRef.current) {
           setLoading(false);
         }
       }
@@ -259,7 +261,7 @@ export default function Dashboard() {
     initializeDashboard();
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
       if (scanChannel) {
         supabase.removeChannel(scanChannel);
       }
@@ -267,10 +269,10 @@ export default function Dashboard() {
         supabase.removeChannel(profileChannel);
       }
     };
-  }, [router]);
+  }, [router, fetchDashboardData]);
 
   // REDEEM REWARD HANDLER
-  const handleRedeemSuccess = async (cost) => {
+  const handleRedeemSuccess = async (cost, rewardItem) => {
     if (!user) return;
 
     const currentPoints = profile?.points ?? profile?.poin ?? 0;
@@ -288,14 +290,47 @@ export default function Dashboard() {
 
     // Save permanently to Supabase profiles table
     try {
-      const { error } = await supabase
+      const { error: profileErr } = await supabase
         .from("profiles")
         .update({ points: newPoints })
         .eq("id", user.id);
 
-      if (error) {
-        console.error("Gagal menyimpan poin ke Supabase:", error);
+      if (profileErr) {
+        console.error("Gagal menyimpan poin ke Supabase:", profileErr);
       }
+
+      // Catat aktivitas penukaran reward ke scan_history agar sinkron
+      const rewardTitle = rewardItem?.title || "Penukaran Reward";
+      const { error: historyErr } = await supabase
+        .from("scan_history")
+        .insert({
+          user_id: user.id,
+          waste_name: `Tukar: ${rewardTitle}`,
+          item_name: rewardTitle,
+          category: "Reward",
+          points_earned: -cost,
+        });
+
+      if (historyErr) {
+        console.error("Gagal mencatat riwayat penukaran:", historyErr);
+      }
+
+      // Kirim notifikasi transaksi penukaran reward
+      try {
+        await supabase
+          .from("notifications")
+          .insert({
+            user_id: user.id,
+            title: "Penukaran Berhasil! 🎁",
+            message: `Kamu berhasil menukarkan ${cost} Pts untuk ${rewardTitle}.`,
+            is_read: false,
+          });
+      } catch (notifErr) {
+        // Abaikan jika notifikasi gagal
+      }
+
+      // Refresh data dashboard agar aktivitas terkini langsung sinkron
+      await fetchDashboardData(user.id);
     } catch (err) {
       console.error("Error saat update poin di Supabase:", err);
     }

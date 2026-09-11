@@ -203,6 +203,12 @@
   border: 1px solid #f7cebe;
 }
 
+.badge-reward {
+  background: #fdf2f8;
+  color: #db2777;
+  border: 1px solid #fbcfe8;
+}
+
 .badge-default {
   background: #f0f3f1;
   color: #637368;
@@ -212,6 +218,10 @@
   font-size: 12px;
   font-weight: 800;
   color: #294032;
+}
+
+.item-points.item-points-deduction {
+  color: #e11d48;
 }
 
 /* =====================================================

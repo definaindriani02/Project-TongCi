@@ -1,16 +1,112 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Menu, Search, Bell, Award } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, Search, Bell, Award, X, ArrowRight } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+const SEARCH_ITEMS = [
+  {
+    name: "Dashboard",
+    desc: "Ringkasan data, hero, statistik & aktivitas",
+    href: "/dashboard",
+    category: "Menu",
+    icon: "📊",
+    keywords: ["beranda", "home", "dashboard", "ringkasan", "utama"],
+  },
+  {
+    name: "Klasifikasi AI / Scan Sampah",
+    desc: "Identifikasi jenis sampah dengan kamera AI",
+    href: "/scan",
+    category: "Fitur AI",
+    icon: "📷",
+    keywords: ["scan", "kamera", "foto", "ai", "klasifikasi", "deteksi", "analisis"],
+  },
+  {
+    name: "Edukasi Sampah",
+    desc: "Panduan pemilahan sampah organik, anorganik, B3",
+    href: "/edukasi",
+    category: "Edukasi",
+    icon: "📖",
+    keywords: ["edukasi", "belajar", "panduan", "artikel", "jenis", "sampah", "tips"],
+  },
+  {
+    name: "Statistik & Dampak Hijau",
+    desc: "Lihat komposisi sampah & reduksi emisi karbon CO2",
+    href: "/statistik",
+    category: "Laporan",
+    icon: "🌱",
+    keywords: ["statistik", "data", "grafik", "karbon", "co2", "dampak", "lingkungan"],
+  },
+  {
+    name: "Leaderboard & Peringkat",
+    desc: "Peringkat pahlawan lingkungan & poin komunitas",
+    href: "/leaderboard",
+    category: "Komunitas",
+    icon: "🏆",
+    keywords: ["leaderboard", "peringkat", "rank", "juara", "top", "kompetisi"],
+  },
+  {
+    name: "Katalog Hadiah / Tukar Reward",
+    desc: "Tukarkan poin ke saldo e-wallet, voucher, atau merch",
+    href: "/dashboard#reward",
+    category: "Reward",
+    icon: "🎁",
+    keywords: ["reward", "hadiah", "tukar", "poin", "voucher", "gopay", "ovo", "klaim"],
+  },
+  {
+    name: "Riwayat Aktivitas",
+    desc: "Catatan lengkap riwayat scan sampah & penukaran reward",
+    href: "/riwayat",
+    category: "Aktivitas",
+    icon: "📜",
+    keywords: ["riwayat", "history", "log", "aktivitas", "catatan", "semua"],
+  },
+  {
+    name: "CiCi Chat AI",
+    desc: "Tanya jawab cerdas seputar daur ulang sampah",
+    href: "/chat",
+    category: "Chat AI",
+    icon: "💬",
+    keywords: ["chat", "cici", "bot", "tanya", "ai", "konsultasi"],
+  },
+  {
+    name: "Profil Pengguna",
+    desc: "Informasi akun, statistik personal, dan badge",
+    href: "/profil",
+    category: "Akun",
+    icon: "👤",
+    keywords: ["profil", "profile", "akun", "biodata", "saya", "user"],
+  },
+  {
+    name: "Pengaturan Akun",
+    desc: "Kelola kata sandi, notifikasi, dan tampilan",
+    href: "/settings",
+    category: "Pengaturan",
+    icon: "⚙️",
+    keywords: ["pengaturan", "settings", "password", "keamanan", "notifikasi", "bahasa"],
+  },
+  {
+    name: "Notifikasi",
+    desc: "Pemberitahuan aktivitas, poin, dan promo terbaru",
+    href: "/notifications",
+    category: "Notifikasi",
+    icon: "🔔",
+    keywords: ["notifikasi", "pesan", "pemberitahuan", "lonceng", "unread"],
+  },
+];
 
 export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [points, setPoints] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0); // <-- State untuk hitung notif unread
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const searchContainerRef = useRef(null);
+  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
@@ -158,12 +254,61 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
     if (pathname === "/scan") return "Klasifikasi AI";
     if (pathname === "/statistik") return "Statistik";
     if (pathname === "/leaderboard") return "Leaderboard & Reward";
+    if (pathname === "/riwayat") return "Riwayat Aktivitas";
     if (pathname === "/chat") return "CiCi Chat AI";
     if (pathname === "/profil" || pathname === "/profile")
       return "Profil Pengguna";
     if (pathname === "/settings") return "Pengaturan";
     if (pathname === "/notifications") return "Notifikasi";
     return "TongCi";
+  };
+
+  // Search logic & filtering
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return SEARCH_ITEMS.filter((item) => {
+      return (
+        item.name.toLowerCase().includes(q) ||
+        item.desc.toLowerCase().includes(q) ||
+        item.category.toLowerCase().includes(q) ||
+        item.keywords.some((kw) => kw.includes(q))
+      );
+    });
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setIsSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectResult = (item) => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    router.push(item.href);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (!isSearchOpen || searchResults.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev + 1) % searchResults.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev - 1 + searchResults.length) % searchResults.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (searchResults[selectedIndex]) {
+        handleSelectResult(searchResults[selectedIndex]);
+      }
+    } else if (e.key === "Escape") {
+      setIsSearchOpen(false);
+    }
   };
 
   return (
@@ -181,13 +326,85 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         </h2>
       </div>
 
-      <div className="relative max-w-[180px] xs:max-w-[240px] sm:max-w-md flex-1">
-        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 sm:left-4 sm:h-4 sm:w-4 text-emerald-500" />
+      <div ref={searchContainerRef} className="relative max-w-[180px] xs:max-w-[240px] sm:max-w-md flex-1">
+        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 sm:left-4 sm:h-4 sm:w-4 text-emerald-500 pointer-events-none" />
         <input
           type="text"
-          placeholder="Cari fitur..."
-          className="w-full rounded-full border border-emerald-100/60 bg-emerald-50/40 py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 text-[11px] sm:text-xs text-emerald-800 transition-colors focus:border-emerald-500 focus:outline-none"
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setIsSearchOpen(true);
+            setSelectedIndex(0);
+          }}
+          onFocus={() => {
+            if (searchQuery.trim()) setIsSearchOpen(true);
+          }}
+          onKeyDown={handleSearchKeyDown}
+          placeholder="Cari fitur, menu, panduan..."
+          className="w-full rounded-full border border-emerald-100/60 bg-emerald-50/40 py-1.5 sm:py-2 pl-8 sm:pl-10 pr-8 text-[11px] sm:text-xs text-emerald-800 transition-colors focus:border-emerald-500 focus:bg-white focus:outline-none"
         />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery("");
+              setIsSearchOpen(false);
+            }}
+            className="absolute right-3 top-2 sm:top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+          >
+            <X size={14} />
+          </button>
+        )}
+
+        {/* SEARCH DROPDOWN POPOVER */}
+        {isSearchOpen && searchQuery.trim() && (
+          <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="p-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 flex items-center justify-between px-3">
+              <span>Hasil Pencarian Fitur</span>
+              <span className="text-emerald-600 font-bold">{searchResults.length} Ditemukan</span>
+            </div>
+
+            <div className="max-h-72 overflow-y-auto p-1.5 space-y-1">
+              {searchResults.length === 0 ? (
+                <div className="py-6 px-4 text-center">
+                  <p className="text-xs font-bold text-slate-700">Tidak ada fitur yang cocok</p>
+                  <p className="text-[11px] text-slate-400 mt-1">Coba kata kunci lain seperti: scan, edukasi, reward, profil</p>
+                </div>
+              ) : (
+                searchResults.map((item, idx) => {
+                  const isSelected = idx === selectedIndex;
+                  return (
+                    <button
+                      key={item.href + item.name}
+                      type="button"
+                      onClick={() => handleSelectResult(item)}
+                      onMouseEnter={() => setSelectedIndex(idx)}
+                      className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
+                        isSelected ? "bg-emerald-50 text-emerald-900" : "hover:bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-base shrink-0 p-1.5 rounded-lg bg-white border border-slate-100 shadow-2xs">
+                          {item.icon}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold truncate text-slate-800">{item.name}</p>
+                          <p className="text-[10px] text-slate-400 truncate">{item.desc}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100/60 text-emerald-700">
+                          {item.category}
+                        </span>
+                        <ArrowRight size={12} className="text-slate-300" />
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
