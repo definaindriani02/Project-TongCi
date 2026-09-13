@@ -9,9 +9,10 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
 
-  // 1. Fetch data awal
   useEffect(() => {
-    const fetchNotifications = async () => {
+    let channel;
+
+    const initNotifications = async () => {
       try {
         setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
@@ -20,6 +21,7 @@ export default function NotificationsPage() {
           const currentUserId = session.user.id;
           setUserId(currentUserId);
 
+          // 1. Fetch data awal notifikasi
           const { data, error } = await supabase
             .from('notifications')
             .select('*')
@@ -31,6 +33,36 @@ export default function NotificationsPage() {
           } else {
             setNotifications(data || []);
           }
+
+          // 2. Realtime Listener dengan Channel ID Unik
+          const channelId = `realtime-notif-page-${currentUserId}-${Date.now()}`;
+          channel = supabase
+            .channel(channelId)
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'notifications',
+                filter: `user_id=eq.${currentUserId}`,
+              },
+              (payload) => {
+                if (payload.eventType === 'INSERT') {
+                  setNotifications((prev) => {
+                    // Hindari duplikasi jika item sudah ada
+                    if (prev.some((n) => n.id === payload.new.id)) return prev;
+                    return [payload.new, ...prev];
+                  });
+                } else if (payload.eventType === 'UPDATE') {
+                  setNotifications((prev) =>
+                    prev.map((item) =>
+                      item.id === payload.new.id ? payload.new : item
+                    )
+                  );
+                }
+              }
+            )
+            .subscribe();
         }
       } catch (err) {
         console.error('Unexpected error:', err);
@@ -39,47 +71,17 @@ export default function NotificationsPage() {
       }
     };
 
-    fetchNotifications();
-  }, []);
-
-  // 2. Realtime Subscription (Dengarkan INSERT dan UPDATE)
-  useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`realtime-notifications-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // Dengarkan SEMUA event (INSERT & UPDATE)
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setNotifications((prev) => [payload.new, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setNotifications((prev) =>
-              prev.map((item) =>
-                item.id === payload.new.id ? payload.new : item
-              )
-            );
-          }
-        }
-      )
-      .subscribe();
+    initNotifications();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, []);
 
   // Fungsi tandai semua sudah dibaca
   const markAllAsRead = async () => {
     if (!userId || notifications.length === 0) return;
 
-    // Snapshot data lama jika nanti update DB gagal (rollback)
     const previousNotifications = [...notifications];
 
     // Optimistic UI update
@@ -95,16 +97,17 @@ export default function NotificationsPage() {
 
     if (error) {
       console.error('Gagal update status di Supabase:', error.message);
-      // Kembalikan ke state semula jika RLS / DB menolak
       setNotifications(previousNotifications);
       alert('Gagal menandai notifikasi: ' + error.message);
     }
   };
 
+  // Diperbarui: Mendukung tipe 'points' dan 'poin'
   const getIcon = (type) => {
     switch (type) {
       case 'scan':
         return <CheckCircle2 className="w-5 h-5 text-emerald-500" />;
+      case 'points':
       case 'poin':
         return <Award className="w-5 h-5 text-amber-500" />;
       default:
@@ -125,13 +128,13 @@ export default function NotificationsPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Bell className="w-6 h-6 text-emerald-600" />
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <Bell className="w-6 h-6 text-[#22C55E]" />
             Notifikasi
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Pantau semua kabar dan informasi aktivitas TongCi kamu di sini.
           </p>
         </div>
@@ -139,7 +142,7 @@ export default function NotificationsPage() {
         {notifications.some((n) => !n.is_read) && (
           <button
             onClick={markAllAsRead}
-            className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition cursor-pointer"
+            className="text-xs font-semibold text-[#22C55E] hover:text-[#1ea850] bg-[#22C55E]/10 hover:bg-[#22C55E]/20 px-3 py-2 rounded-lg transition cursor-pointer"
           >
             Tandai Semua Dibaca
           </button>
@@ -147,9 +150,9 @@ export default function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mb-2" />
-          <p className="text-sm">Mempersiapkan notifikasi...</p>
+        <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+          <Loader2 className="w-8 h-8 animate-spin text-[#22C55E] mb-2" />
+          <p className="text-sm font-semibold">Mempersiapkan notifikasi...</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -159,37 +162,37 @@ export default function NotificationsPage() {
                 key={item.id}
                 className={`flex items-start gap-4 p-4 rounded-xl border transition ${
                   !item.is_read
-                    ? 'bg-emerald-50/50 border-emerald-200'
-                    : 'bg-white border-gray-100'
+                    ? 'bg-[#22C55E]/5 border-[#22C55E]/20'
+                    : 'bg-white border-slate-100'
                 }`}
               >
-                <div className="p-2 bg-white rounded-lg border shadow-sm mt-0.5">
+                <div className="p-2 bg-white rounded-lg border border-slate-100 shadow-sm mt-0.5 shrink-0">
                   {getIcon(item.type)}
                 </div>
 
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-800 text-sm">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-semibold text-slate-800 text-sm truncate">
                       {item.title}
                     </h3>
-                    <span className="text-[11px] text-gray-400">
+                    <span className="text-[11px] text-slate-400 shrink-0">
                       {formatTime(item.created_at)}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
                     {item.message || item.desc}
                   </p>
                 </div>
 
                 {!item.is_read && (
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full mt-2 shrink-0"></span>
+                  <span className="w-2.5 h-2.5 bg-[#22C55E] rounded-full mt-2 shrink-0 animate-pulse" />
                 )}
               </div>
             ))
           ) : (
-            <div className="text-center py-12 bg-white rounded-xl border">
-              <Sparkles className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm font-medium text-gray-500">
+            <div className="text-center py-12 bg-white rounded-xl border border-slate-100">
+              <Sparkles className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <p className="text-sm font-medium text-slate-500">
                 Belum ada notifikasi baru
               </p>
             </div>

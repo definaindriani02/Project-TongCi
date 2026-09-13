@@ -101,7 +101,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [points, setPoints] = useState(0);
-  const [unreadCount, setUnreadCount] = useState(0); // <-- State untuk hitung notif unread
+  const [unreadCount, setUnreadCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -112,18 +112,19 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
   useEffect(() => {
     let profileChannel = null;
     let notifChannel = null;
+    let intervalId = null;
 
-    // Helper untuk mengambil jumlah notifikasi unread dari Supabase
     const fetchUnreadCount = async (userId) => {
       try {
-        const { count, error } = await supabase
-          .from("notifications") // Pastikan nama tabel kamu 'notifications'
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId)
-          .eq("is_read", false); // Hanya hitung yang BELUM dibaca
+        // Ambil data yang is_read false ATAU null agar aman
+        const { data, error } = await supabase
+          .from("notifications")
+          .select("id, is_read")
+          .eq("user_id", userId);
 
-        if (!error && count !== null) {
-          setUnreadCount(count);
+        if (!error && data) {
+          const unread = data.filter((item) => item.is_read === false || item.is_read === null);
+          setUnreadCount(unread.length);
         }
       } catch (err) {
         console.error("Gagal mengambil unread notifications:", err);
@@ -139,7 +140,6 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         const currentUser = session.user;
         setUser(currentUser);
 
-        // Fetch profile
         const { data: prof } = await supabase
           .from("profiles")
           .select("*")
@@ -149,17 +149,19 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         if (prof) {
           setProfile(prof);
           setPoints(prof.points || 0);
-        } else {
-          setPoints(0);
         }
 
-        // Fetch Unread Notifications awal
         fetchUnreadCount(currentUser.id);
 
-        // Setup realtime listener for profile updates
-        const channelId = `header-profile-${currentUser.id}-${Date.now()}`;
+        // Fallback Polling setiap 8 detik untuk memastikan sinkronisasi mutlak
+        intervalId = setInterval(() => {
+          fetchUnreadCount(currentUser.id);
+        }, 8000);
+
+        // Realtime listener profiles
+        const profileChannelId = `header-profile-${currentUser.id}-${Date.now()}`;
         profileChannel = supabase
-          .channel(channelId)
+          .channel(profileChannelId)
           .on(
             "postgres_changes",
             {
@@ -177,20 +179,19 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           )
           .subscribe();
 
-        // Setup realtime listener untuk NOTIFIKASI
+        // Realtime listener notifications
         const notifChannelId = `header-notif-${currentUser.id}-${Date.now()}`;
         notifChannel = supabase
           .channel(notifChannelId)
           .on(
             "postgres_changes",
             {
-              event: "*", // Listen INSERT, UPDATE, DELETE
+              event: "*",
               schema: "public",
               table: "notifications",
               filter: `user_id=eq.${currentUser.id}`,
             },
             () => {
-              // Setiap ada update/insert di tabel notifications, refresh hitungan
               fetchUnreadCount(currentUser.id);
             }
           )
@@ -225,10 +226,26 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
 
     return () => {
       subscription?.unsubscribe();
+      if (intervalId) clearInterval(intervalId);
       if (profileChannel) supabase.removeChannel(profileChannel);
       if (notifChannel) supabase.removeChannel(notifChannel);
     };
   }, []);
+
+  const handleNotificationClick = async () => {
+    setUnreadCount(0);
+
+    if (user) {
+      try {
+        await supabase
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("user_id", user.id);
+      } catch (err) {
+        console.error("Gagal memperbarui status notifikasi:", err);
+      }
+    }
+  };
 
   const displayName =
     profile?.full_name ||
@@ -263,7 +280,6 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
     return "TongCi";
   };
 
-  // Search logic & filtering
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase().trim();
@@ -316,18 +332,18 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="cursor-pointer rounded-lg p-1.5 text-emerald-700 transition-all hover:bg-slate-50 hover:text-emerald-500 active:scale-95"
+          className="cursor-pointer rounded-lg p-1.5 text-[#22C55E] transition-all hover:bg-slate-50 hover:text-[#1ea850] active:scale-95"
           title="Toggle Navigation Menu"
         >
           <Menu size={20} />
         </button>
-        <h2 className="hidden text-xs font-bold tracking-wide text-emerald-800 sm:block md:text-sm truncate">
+        <h2 className="hidden text-xs font-bold tracking-wide text-slate-800 sm:block md:text-sm truncate">
           {getPageTitle()}
         </h2>
       </div>
 
       <div ref={searchContainerRef} className="relative max-w-[180px] xs:max-w-[240px] sm:max-w-md flex-1">
-        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 sm:left-4 sm:h-4 sm:w-4 text-emerald-500 pointer-events-none" />
+        <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 sm:left-4 sm:h-4 sm:w-4 text-[#22C55E] pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
@@ -341,7 +357,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           }}
           onKeyDown={handleSearchKeyDown}
           placeholder="Cari fitur, menu, panduan..."
-          className="w-full rounded-full border border-emerald-100/60 bg-emerald-50/40 py-1.5 sm:py-2 pl-8 sm:pl-10 pr-8 text-[11px] sm:text-xs text-emerald-800 transition-colors focus:border-emerald-500 focus:bg-white focus:outline-none"
+          className="w-full rounded-full border border-[#22C55E]/20 bg-[#22C55E]/5 py-1.5 sm:py-2 pl-8 sm:pl-10 pr-8 text-[11px] sm:text-xs text-slate-800 transition-colors focus:border-[#22C55E] focus:bg-white focus:outline-none"
         />
         {searchQuery && (
           <button
@@ -356,12 +372,11 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           </button>
         )}
 
-        {/* SEARCH DROPDOWN POPOVER */}
         {isSearchOpen && searchQuery.trim() && (
           <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150">
             <div className="p-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 flex items-center justify-between px-3">
               <span>Hasil Pencarian Fitur</span>
-              <span className="text-emerald-600 font-bold">{searchResults.length} Ditemukan</span>
+              <span className="text-[#22C55E] font-bold">{searchResults.length} Ditemukan</span>
             </div>
 
             <div className="max-h-72 overflow-y-auto p-1.5 space-y-1">
@@ -380,7 +395,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
                       onClick={() => handleSelectResult(item)}
                       onMouseEnter={() => setSelectedIndex(idx)}
                       className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
-                        isSelected ? "bg-emerald-50 text-emerald-900" : "hover:bg-slate-50 text-slate-700"
+                        isSelected ? "bg-[#22C55E]/10 text-slate-900" : "hover:bg-slate-50 text-slate-700"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
@@ -393,7 +408,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100/60 text-emerald-700">
+                        <span className="text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#22C55E]/10 text-[#22C55E]">
                           {item.category}
                         </span>
                         <ArrowRight size={12} className="text-slate-300" />
@@ -418,17 +433,21 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           </Link>
         )}
 
-        {/* Tombol Lonceng Notifikasi yang Dinamis */}
         <Link
           href="/notifications"
-          className="relative cursor-pointer p-1 text-emerald-500 transition-transform hover:text-emerald-600 active:scale-95 shrink-0"
+          onClick={handleNotificationClick}
+          className="relative cursor-pointer p-1 text-slate-600 transition-transform hover:text-[#22C55E] active:scale-95 shrink-0"
           title="Notifikasi"
         >
           <Bell size={20} />
           
-          {/* Titik merah HANYA dirender jika unreadCount > 0 */}
           {unreadCount > 0 && (
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-pink-500 ring-2 ring-white"></span>
+            <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-pink-500 ring-2 ring-white animate-ping" />
+          )}
+          {unreadCount > 0 && (
+            <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-pink-500 ring-2 ring-white flex items-center justify-center text-[9px] font-bold text-white">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
           )}
         </Link>
 
@@ -436,7 +455,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           <Link
             href="/profil"
             title={`Profil: ${displayName}`}
-            className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-500 text-xs sm:text-sm font-extrabold text-white shadow-sm transition-all hover:bg-emerald-600"
+            className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#22C55E] text-xs sm:text-sm font-extrabold text-white shadow-sm transition-all hover:bg-[#1ea850]"
           >
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -452,7 +471,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
         ) : (
           <Link
             href="/login"
-            className="rounded-full bg-emerald-500 px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white transition-colors hover:bg-emerald-600 shrink-0"
+            className="rounded-full bg-[#22C55E] px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white transition-colors hover:bg-[#1ea850] shrink-0"
           >
             Masuk
           </Link>

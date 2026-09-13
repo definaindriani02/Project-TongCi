@@ -8,7 +8,6 @@ export default function KlasifikasiAI() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
-  // App UI State: "idle" | "camera" | "analyzing" | "result"
   const [scanState, setScanState] = useState("idle");
   const [selectedImage, setSelectedImage] = useState(null);
   const [scanResult, setScanResult] = useState(null);
@@ -17,7 +16,6 @@ export default function KlasifikasiAI() {
   const [saving, setSaving] = useState(false);
   const [pointsSaved, setPointsSaved] = useState(false);
 
-  // Refs for media devices
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
   const [cameraStream, setCameraStream] = useState(null);
@@ -30,23 +28,51 @@ export default function KlasifikasiAI() {
   ];
 
   useEffect(() => {
-    // Check current authenticated user and profile points
-    const checkUser = async () => {
+    let scanNotifChannel = null;
+
+    const initUserAndRealtime = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
+        
+        // Ambil data profil
         const { data: prof } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
         if (prof) setProfile(prof);
+
+        // Pasang Realtime Listener dengan Channel ID unik
+        const channelId = `klasifikasi-ai-notif-${session.user.id}-${Date.now()}`;
+        scanNotifChannel = supabase
+          .channel(channelId)
+          .on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "notifications",
+              filter: `user_id=eq.${session.user.id}`,
+            },
+            (payload) => {
+              console.log("Notifikasi scan baru terdeteksi:", payload.new);
+            }
+          )
+          .subscribe();
       }
     };
-    checkUser();
+
+    initUserAndRealtime();
+
+    return () => {
+      // Cleanup: Unsubscribe channel saat komponen unmount/re-render
+      if (scanNotifChannel) {
+        supabase.removeChannel(scanNotifChannel);
+      }
+    };
   }, []);
 
-  // CAMERA UTILS
   const startCamera = async () => {
     setScanState("camera");
     setErrorMsg("");
@@ -64,7 +90,7 @@ export default function KlasifikasiAI() {
       }
     } catch (err) {
       console.error("Gagal membuka kamera:", err);
-      setErrorMsg("Kamera tidak dapat diakses. Pastikan izin kamera sudah diberikan atau silakan unggah foto dari galeri.");
+      setErrorMsg("Kamera tidak dapat diakses. Pastikan izin kamera sudah diberikan atau unggah foto dari galeri.");
       setScanState("idle");
     }
   };
@@ -83,7 +109,7 @@ export default function KlasifikasiAI() {
       canvas.height = videoRef.current.videoHeight || 480;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      const base64Image = canvas.toDataURL("image/jpeg", 0.8); // Kompresi ringan agar upload lebih cepat
+      const base64Image = canvas.toDataURL("image/jpeg", 0.8);
 
       stopCamera();
       setSelectedImage(base64Image);
@@ -91,7 +117,6 @@ export default function KlasifikasiAI() {
     }
   };
 
-  // FILE UPLOAD UTILS
   const triggerFileUpload = () => {
     setErrorMsg("");
     setSuccessMsg("");
@@ -112,7 +137,7 @@ export default function KlasifikasiAI() {
     }
   };
 
-  // PERBAIKAN: SEND TO GEMINI API
+  // SEND TO GEMINI API & AUTOMATICALLY CREATE SCAN NOTIFICATION
   const analyzeImage = async (base64Img) => {
     setScanState("analyzing");
     setErrorMsg("");
@@ -120,24 +145,42 @@ export default function KlasifikasiAI() {
     try {
       const res = await fetch("/api/scan", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: base64Img,
           userId: user?.id || null,
         }),
       });
 
-      // Parsing aman untuk menangkap detail error dari backend
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(data.error || "Gagal menganalisa gambar. Server merespon dengan status " + res.status);
+        throw new Error(data.error || "Gagal menganalisis gambar.");
       }
 
       setScanResult(data);
       setScanState("result");
+
+      // Insert otomatis notifikasi scan
+      if (user?.id) {
+        const wasteName = data.item_name || "Sampah Terdeteksi";
+        const wasteCat = data.category || "Umum";
+
+        const { error: notifErr } = await supabase.from("notifications").insert([
+          {
+            user_id: user.id,
+            title: "Scan Sampah Berhasil! 🗑️",
+            message: `Sampah teridentifikasi sebagai ${wasteName} (${wasteCat}).`,
+            type: "scan",
+            is_read: false,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+        if (notifErr) {
+          console.error("Gagal insert notifikasi scan:", notifErr);
+        }
+      }
     } catch (err) {
       console.error("Analysis Error:", err);
       setErrorMsg(err.message || "Terjadi kesalahan saat klasifikasi gambar.");
@@ -145,7 +188,7 @@ export default function KlasifikasiAI() {
     }
   };
 
-  // SAVE RESULTS FOR POINTS VIA SUPABASE RPC WITH FALLBACK
+  // SAVE RESULTS FOR POINTS & TRIGGER POINTS NOTIFICATION
   const saveScanPoints = async () => {
     if (!user) {
       setErrorMsg("Kamu harus masuk (Login) terlebih dahulu untuk mengklaim poin!");
@@ -161,72 +204,61 @@ export default function KlasifikasiAI() {
       const wasteName = scanResult.item_name || "Sampah Terdeteksi";
       const wasteCat = scanResult.category || "Anorganik";
       const earnedPoints = 18;
-      let rpcSuccess = false;
-      let updatedData = null;
+      const confidenceScore = typeof scanResult.confidence === "number" ? Math.round(scanResult.confidence) : 85;
 
-      // 1. Panggil fungsi RPC claim_scan_points di Supabase Database
-      try {
-        const { data, error } = await supabase.rpc("claim_scan_points", {
-          p_waste_name: wasteName,
-          p_category: wasteCat,
-          p_points_earned: earnedPoints,
-          p_image_url: null,
-        });
-
-        if (!error && data) {
-          rpcSuccess = true;
-          updatedData = data;
-        } else if (error) {
-          console.warn("RPC claim_scan_points warning, fallback to direct insert:", error.message);
-        }
-      } catch (rpcErr) {
-        console.warn("RPC call error, fallback to direct insert:", rpcErr);
-      }
-
-      // 2. Fallback: jika RPC tidak berhasil, simpan langsung ke scan_history & update profil
-      if (!rpcSuccess) {
-        const { error: insertError } = await supabase.from("scan_history").insert({
+      const { error: insertError } = await supabase.from("scan_history").insert([
+        {
           user_id: user.id,
           waste_name: wasteName,
           item_name: wasteName,
           category: wasteCat,
           points_earned: earnedPoints,
-          confidence: typeof scanResult.confidence === "number" ? Math.round(scanResult.confidence) : 85,
-        });
+          confidence: confidenceScore,
+        },
+      ]);
 
-        if (insertError) throw insertError;
+      if (insertError) throw new Error("Gagal menyimpan riwayat: " + insertError.message);
 
-        const currentPoints = profile?.points || 0;
-        const currentScans = profile?.total_scan || 0;
-        const newPoints = currentPoints + earnedPoints;
-        const newScans = currentScans + 1;
+      const currentPoints = profile?.points || 0;
+      const currentScans = profile?.total_scan || 0;
+      const newPoints = currentPoints + earnedPoints;
+      const newScans = currentScans + 1;
 
-        await supabase
-          .from("profiles")
-          .update({
-            points: newPoints,
-            total_scan: newScans,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", user.id);
+      await supabase
+        .from("profiles")
+        .update({
+          points: newPoints,
+          total_scan: newScans,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
 
-        updatedData = { points: newPoints, total_scan: newScans };
+      const { error: notifPointErr } = await supabase.from("notifications").insert([
+        {
+          user_id: user.id,
+          title: "Poin Berhasil Diklaim! 🎉",
+          message: `Selamat! Kamu mendapatkan +${earnedPoints} poin dari pemindaian ${wasteName} (${wasteCat}).`,
+          type: "points",
+          is_read: false,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+
+      if (notifPointErr) {
+        console.error("Gagal insert notifikasi poin:", notifPointErr);
       }
 
-      // Update state lokal profil agar tampilan UI langsung berubah
-      if (updatedData) {
-        setProfile((prev) => ({
-          ...prev,
-          points: updatedData.points,
-          total_scan: updatedData.total_scan,
-        }));
-      }
+      setProfile((prev) => ({
+        ...prev,
+        points: newPoints,
+        total_scan: newScans,
+      }));
 
       setPointsSaved(true);
       setSuccessMsg(`Poin berhasil diklaim! +${earnedPoints} Pts ditambahkan ke akun Anda.`);
     } catch (err) {
       console.error("Gagal menyimpan poin:", err?.message || err);
-      setErrorMsg("Gagal menyimpan poin ke database: " + (err?.message || "Terjadi kesalahan"));
+      setErrorMsg(err?.message || "Terjadi kesalahan saat menyimpan poin.");
     } finally {
       setSaving(false);
     }
@@ -243,11 +275,7 @@ export default function KlasifikasiAI() {
 
   return (
     <div className="space-y-6">
-
-      {/* SCANNER CONTAINER */}
       <section className="bg-white rounded-3xl p-6 md:p-8 border border-[#22C55E]/20 shadow-sm min-h-[420px] flex flex-col justify-between relative overflow-hidden">
-
-        {/* Header scanner */}
         <div className="flex items-start gap-4">
           <div className="p-3 bg-[#22C55E]/10 text-[#22C55E] rounded-xl">
             <Cpu size={24} />
@@ -273,7 +301,6 @@ export default function KlasifikasiAI() {
           )}
         </div>
 
-        {/* BANNERS */}
         {errorMsg && (
           <div className="my-4 bg-pink-50 border border-pink-100 p-3.5 rounded-2xl flex items-start gap-2.5 text-pink-700 text-xs font-semibold">
             <AlertCircle size={16} className="shrink-0 mt-0.5" />
@@ -287,21 +314,16 @@ export default function KlasifikasiAI() {
           </div>
         )}
 
-        {/* WORKSPACE STATES */}
-
-        {/* STATE 1: IDLE */}
         {scanState === "idle" && (
           <div className="flex flex-col items-center justify-center my-auto py-8 text-center">
             <div className="w-20 h-20 bg-[#22C55E]/10 rounded-full flex items-center justify-center border border-[#22C55E]/20 text-4xl mb-4 relative">
               🗑️
               <span className="absolute -bottom-1 -right-1 text-base">🔍</span>
             </div>
-
             <h4 className="font-extrabold text-slate-800 mb-1 text-sm">Upload Foto Sampah</h4>
             <p className="text-[11px] text-slate-400 font-semibold mb-6 max-w-xs">
               Unggah file atau potret sampah secara langsung menggunakan kamera.
             </p>
-
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
               <button
                 onClick={triggerFileUpload}
@@ -316,7 +338,6 @@ export default function KlasifikasiAI() {
                 <Camera size={16} /> Buka Kamera
               </button>
             </div>
-            {/* Hidden Input for Files */}
             <input
               type="file"
               ref={fileInputRef}
@@ -327,16 +348,10 @@ export default function KlasifikasiAI() {
           </div>
         )}
 
-        {/* STATE 2: LIVE CAMERA FEED */}
         {scanState === "camera" && (
           <div className="flex flex-col items-center justify-center my-auto py-4 relative w-full max-w-md mx-auto">
             <div className="w-full aspect-[4/3] rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden relative shadow-inner">
-              <video
-                ref={videoRef}
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-              />
+              <video ref={videoRef} playsInline muted className="w-full h-full object-cover" />
             </div>
             <div className="flex gap-4 mt-6">
               <button
@@ -358,7 +373,6 @@ export default function KlasifikasiAI() {
           </div>
         )}
 
-        {/* STATE 3: ANALYZING AI */}
         {scanState === "analyzing" && (
           <div className="flex flex-col items-center justify-center my-auto py-8">
             {selectedImage && (
@@ -367,39 +381,36 @@ export default function KlasifikasiAI() {
                 <img src={selectedImage} alt="Preview" className="w-full h-full object-cover" />
               </div>
             )}
-
             <h4 className="font-extrabold text-slate-800 mb-1 text-sm animate-pulse">Menganalisis gambar...</h4>
             <p className="text-xs text-[#22C55E] font-bold mb-6 flex items-center gap-1">
               CiCi sedang bekerja keras 🔍
             </p>
-
             <div className="w-64 bg-[#22C55E]/20 h-2 rounded-full overflow-hidden">
               <div className="bg-[#22C55E] h-full w-2/3 rounded-full animate-pulse"></div>
             </div>
           </div>
         )}
 
-        {/* STATE 4: SCAN RESULT */}
         {scanState === "result" && scanResult && (
           <div className="flex flex-col my-auto py-4 space-y-6">
-
-            {/* Success box */}
-            <div className={`p-5 rounded-2xl border flex items-start gap-4 ${scanResult.category === "Organik" ? "bg-[#22C55E]/10 border-[#22C55E]/20" :
-                scanResult.category === "Plastik" ? "bg-sky-50/50 border-sky-100" :
-                  scanResult.category === "Kertas" ? "bg-amber-50/50 border-amber-100" :
-                    "bg-slate-50/50 border-slate-100"
-              }`}>
+            <div className={`p-5 rounded-2xl border flex items-start gap-4 ${
+              scanResult.category === "Organik" ? "bg-[#22C55E]/10 border-[#22C55E]/20" :
+              scanResult.category === "Plastik" ? "bg-sky-50/50 border-sky-100" :
+              scanResult.category === "Kertas" ? "bg-amber-50/50 border-amber-100" :
+              "bg-slate-50/50 border-slate-100"
+            }`}>
               <div className="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-2xl shadow-sm shrink-0">
                 {categories.find(c => c.name === scanResult.category)?.icon || "♻️"}
               </div>
               <div className="space-y-1">
                 <h4 className="font-extrabold text-sm text-slate-800">
                   Sampah {scanResult.category}
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ml-2 inline-block ${scanResult.category === "Organik" ? "bg-[#22C55E]/20 text-[#22C55E]" :
-                      scanResult.category === "Plastik" ? "bg-sky-100 text-sky-700" :
-                        scanResult.category === "Kertas" ? "bg-amber-100 text-amber-700" :
-                          "bg-slate-100 text-slate-700"
-                    }`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ml-2 inline-block ${
+                    scanResult.category === "Organik" ? "bg-[#22C55E]/20 text-[#22C55E]" :
+                    scanResult.category === "Plastik" ? "bg-sky-100 text-sky-700" :
+                    scanResult.category === "Kertas" ? "bg-amber-100 text-amber-700" :
+                    "bg-slate-100 text-slate-700"
+                  }`}>
                     {scanResult.confidence}% akurat
                   </span>
                 </h4>
@@ -410,7 +421,6 @@ export default function KlasifikasiAI() {
               </div>
             </div>
 
-            {/* Progress Bars */}
             <div className="space-y-3.5 bg-slate-50/30 border border-slate-100 rounded-2xl p-5">
               <h5 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tingkat Klasifikasi</h5>
               <div className="space-y-3">
@@ -429,7 +439,6 @@ export default function KlasifikasiAI() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 onClick={resetScanner}
@@ -458,10 +467,8 @@ export default function KlasifikasiAI() {
             </div>
           </div>
         )}
-
       </section>
 
-      {/* GRID KATEGORI SAMPAH BAWAH */}
       <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {categories.map((cat, idx) => (
           <div
@@ -476,7 +483,6 @@ export default function KlasifikasiAI() {
           </div>
         ))}
       </section>
-
     </div>
   );
 }
