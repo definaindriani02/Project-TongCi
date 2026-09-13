@@ -155,6 +155,7 @@ export default function SettingsPage() {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [deletingAvatar, setDeletingAvatar] = useState(false);
 
   // State & Ref Kamera Live
   const [showCameraModal, setShowCameraModal] = useState(false);
@@ -184,7 +185,7 @@ export default function SettingsPage() {
   // State Tampilan / Bahasa
   const [language, setLanguage] = useState("id");
 
-  // State Feedback UI
+  // State Feedback UI & Modal Hapus Akun
   const [toast, setToast] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -448,6 +449,29 @@ export default function SettingsPage() {
     }
   };
 
+  // --- HANDLER HAPUS FOTO PROFIL ---
+  const handleDeleteAvatar = async () => {
+    if (!userId) return;
+    try {
+      setDeletingAvatar(true);
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null, updated_at: new Date().toISOString() })
+        .eq("id", userId);
+
+      if (updateError) throw updateError;
+
+      setProfile((prev) => ({ ...prev, avatar_url: "" }));
+      showNotification("Foto profil berhasil dihapus! 🗑️");
+    } catch (error) {
+      console.error("Gagal menghapus foto profil:", error);
+      alert("Terjadi kesalahan saat menghapus foto profil.");
+    } finally {
+      setDeletingAvatar(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!userId) {
       alert("Sesi pengguna tidak ditemukan. Silakan login kembali.");
@@ -605,26 +629,6 @@ export default function SettingsPage() {
     showNotification("Permintaan hapus akun dikirim.");
   };
 
-  const renderOptions = (items) => (
-    <div className="space-y-3">
-      {items.map(([label, text, key]) => (
-        <div
-          key={key}
-          className="flex items-center justify-between gap-5 rounded-2xl bg-slate-50/80 px-4 py-3"
-        >
-          <div>
-            <p className="text-xs font-bold text-slate-700">{label}</p>
-            <p className="mt-0.5 text-[10px] text-slate-400">{text}</p>
-          </div>
-          <Toggle
-            enabled={!!switches[key]}
-            onChange={() => handleToggle(key)}
-          />
-        </div>
-      ))}
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center text-sm font-bold text-slate-400">
@@ -673,12 +677,13 @@ export default function SettingsPage() {
         </aside>
 
         <div className="space-y-7 rounded-3xl border border-slate-100 bg-white p-5 shadow-sm md:p-7">
+          {/* SECTION: AKUN */}
           <Section
             id="akun"
             title="Akun"
             description="Perbarui informasi dasar untuk akun Anda."
           >
-            {/* FITUR FOTO PROFIL */}
+            {/* FOTO PROFIL */}
             <div className="mb-8 flex flex-col items-center justify-center">
               <div className="relative group">
                 <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-emerald-500/20 bg-slate-100 shadow-inner flex items-center justify-center">
@@ -698,8 +703,8 @@ export default function SettingsPage() {
                 Foto Profil
               </p>
 
-              {/* Tombol Kamera & Galeri */}
-              <div className="mt-3 flex items-center gap-2">
+              {/* Tombol Aksi Foto */}
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                 <input
                   type="file"
                   accept="image/*"
@@ -723,6 +728,17 @@ export default function SettingsPage() {
                 >
                   <Upload size={14} className="text-emerald-600" /> Unggah Foto
                 </button>
+
+                {profile.avatar_url && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteAvatar}
+                    disabled={deletingAvatar}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 shadow-sm transition hover:bg-rose-100 active:scale-95 disabled:opacity-50"
+                  >
+                    <Trash2 size={14} /> {deletingAvatar ? "Menghapus..." : "Hapus Foto"}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -785,23 +801,26 @@ export default function SettingsPage() {
                 />
               </label>
             </div>
-            <button
-              type="button"
-              onClick={handleSaveProfile}
-              disabled={savingAccount}
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-bold text-white shadow-sm shadow-emerald-100 transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:scale-95 disabled:opacity-50"
-            >
-              <Save size={14} />
-              {savingAccount ? "Menyimpan..." : "Simpan Perubahan"}
-            </button>
+
+            <div className="mt-5 flex justify-end">
+              <button
+                type="button"
+                onClick={handleSaveProfile}
+                disabled={savingAccount}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+              >
+                <Save size={15} /> {savingAccount ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </div>
           </Section>
 
+          {/* SECTION: KEAMANAN */}
           <Section
             id="keamanan"
             title="Keamanan"
-            description="Gunakan kata sandi yang kuat untuk melindungi akun Anda."
+            description="Ubah password dan kelola keamanan akun Anda."
           >
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field
                 label="Password Lama"
                 type="password"
@@ -818,92 +837,126 @@ export default function SettingsPage() {
                 onChange={handlePasswordChange}
                 placeholder="••••••••"
               />
-              <Field
-                label="Konfirmasi Password"
-                type="password"
-                name="confirmPass"
-                value={passwords.confirmPass}
-                onChange={handlePasswordChange}
-                placeholder="••••••••"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleSavePassword}
-              disabled={savingPass}
-              className="mt-5 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-bold text-emerald-700 transition hover:bg-emerald-100 active:scale-95 disabled:opacity-50"
-            >
-              <LockKeyhole size={14} />
-              {savingPass ? "Memproses..." : "Ubah Password"}
-            </button>
-          </Section>
-
-          <Section
-            id="notifikasi"
-            title="Notifikasi"
-            description="Pilih informasi yang ingin Anda terima."
-          >
-            {renderOptions([
-              ["Notifikasi Scan", "Dapatkan kabar setelah scan diproses.", "notif_scan"],
-              ["Notifikasi Poin", "Kabar saat poin berhasil ditambahkan.", "notif_points"],
-              ["Email Promosi", "Penawaran dan reward terbaru.", "notif_promo"],
-              ["Update Aplikasi", "Informasi fitur dan pembaruan aplikasi.", "notif_app_update"],
-            ])}
-          </Section>
-
-          <Section
-            id="tampilan"
-            title="Tampilan"
-            description="Sesuaikan pengalaman visual aplikasi."
-          >
-            <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-bold text-slate-600">
-                    Bahasa
-                  </span>
-                  <select
-                    value={language}
-                    onChange={handleLanguageChange}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-medium text-slate-700 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50"
-                  >
-                    <option value="id">Bahasa Indonesia</option>
-                  </select>
-                </label>
+              <div className="sm:col-span-2">
+                <Field
+                  label="Konfirmasi Password Baru"
+                  type="password"
+                  name="confirmPass"
+                  value={passwords.confirmPass}
+                  onChange={handlePasswordChange}
+                  placeholder="••••••••"
+                />
               </div>
             </div>
-          </Section>
 
-          <section className="rounded-2xl border border-pink-100 bg-pink-50 p-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xs font-extrabold text-pink-700">
-                  Zona Berbahaya
-                </h2>
-                <p className="mt-1 text-[10px] leading-relaxed text-pink-600">
-                  Menghapus akun akan menghilangkan data dan riwayat secara
-                  permanen.
-                </p>
-              </div>
+            <div className="mt-5 flex items-center justify-between">
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(true)}
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-pink-500 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-pink-600 active:scale-95"
+                className="text-xs font-bold text-rose-500 hover:text-rose-600"
               >
-                <Trash2 size={14} /> Hapus Akun
+                Hapus Akun?
+              </button>
+              <button
+                type="button"
+                onClick={handleSavePassword}
+                disabled={savingPass}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+              >
+                <Save size={15} /> {savingPass ? "Menyimpan..." : "Perbarui Password"}
               </button>
             </div>
-          </section>
+          </Section>
+
+          {/* SECTION: NOTIFIKASI */}
+          <Section
+            id="notifikasi"
+            title="Notifikasi"
+            description="Atur jenis pemberitahuan yang ingin Anda terima."
+          >
+            <div className="space-y-4">
+              <div>
+                <h3 className="mb-3 text-xs font-bold text-slate-700">Aktivitas</h3>
+                { [
+                  ["Notifikasi Scan QR", "Pemberitahuan saat berhasil melakukan scan.", "notif_scan"],
+                  ["Poin & Reward", "Informasi penambahan poin atau penukaran.", "notif_points"],
+                ].map(([label, desc, key]) => (
+                  <div key={key} className="mb-3 flex items-center justify-between rounded-2xl bg-slate-50 p-4">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">{label}</p>
+                      <p className="text-[10px] text-slate-400">{desc}</p>
+                    </div>
+                    <Toggle enabled={switches[key]} onChange={() => handleToggle(key)} />
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <h3 className="mb-3 text-xs font-bold text-slate-700">Sistem & Promo</h3>
+                { [
+                  ["Promo & Diskon", "Info menarik seputar promo terbaru.", "notif_promo"],
+                  ["Pembaruan Aplikasi", "Informasi update fitur dan perbaikan.", "notif_app_update"],
+                ].map(([label, desc, key]) => (
+                  <div key={key} className="mb-3 flex items-center justify-between rounded-2xl bg-slate-50 p-4">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">{label}</p>
+                      <p className="text-[10px] text-slate-400">{desc}</p>
+                    </div>
+                    <Toggle enabled={switches[key]} onChange={() => handleToggle(key)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Section>
+
+          {/* SECTION: TAMPILAN */}
+          <Section
+            id="tampilan"
+            title="Tampilan & Bahasa"
+            description="Sesuaikan bahasa dan privasi akun Anda."
+          >
+            <div className="space-y-4">
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-bold text-slate-600">
+                  Bahasa Aplikasi
+                </span>
+                <select
+                  value={language}
+                  onChange={handleLanguageChange}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50"
+                >
+                  <option value="id">Bahasa Indonesia</option>
+                  <option value="en">English (US)</option>
+                </select>
+              </label>
+
+              <div className="pt-2">
+                <h3 className="mb-3 text-xs font-bold text-slate-700">Privasi</h3>
+                { [
+                  ["Profil Publik", "Izinkan pengguna lain melihat profil Anda.", "privacy_public_profile"],
+                  ["Tampilkan Peringkat", "Tampilkan nama Anda di papan peringkat (Leaderboard).", "privacy_show_rank"],
+                ].map(([label, desc, key]) => (
+                  <div key={key} className="mb-3 flex items-center justify-between rounded-2xl bg-slate-50 p-4">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">{label}</p>
+                      <p className="text-[10px] text-slate-400">{desc}</p>
+                    </div>
+                    <Toggle enabled={switches[key]} onChange={() => handleToggle(key)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Section>
         </div>
       </div>
 
       {/* MODAL KAMERA LIVE */}
       {showCameraModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md space-y-4 rounded-3xl bg-white p-6 shadow-2xl">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-extrabold text-slate-800">
-                Ambil Foto Profil
+                Ambil Foto dari Kamera
               </h3>
               <button
                 onClick={stopCamera}
@@ -913,11 +966,12 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            <div className="relative h-64 w-full overflow-hidden rounded-2xl bg-black">
+            <div className="relative h-64 w-full overflow-hidden rounded-2xl bg-black flex items-center justify-center">
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
+                muted
                 className="h-full w-full object-cover"
               />
             </div>
@@ -933,9 +987,9 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={capturePhoto}
-                className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-600"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 shadow-md"
               >
-                Ambil Foto
+                <Camera size={14} /> Ambil Foto
               </button>
             </div>
           </div>

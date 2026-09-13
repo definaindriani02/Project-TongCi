@@ -40,8 +40,19 @@ function getInitials(name = "") {
 }
 
 function Avatar({ user, large = false }) {
+  const sizeClasses = large ? "h-14 w-14 md:h-16 md:w-16 text-base md:text-lg" : "h-9 w-9 text-[11px]";
+
+  if (user.avatarUrl) {
+    return (
+      <div className={`${sizeClasses} overflow-hidden rounded-full ring-4 ring-white shadow-sm shrink-0 bg-slate-100`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+      </div>
+    );
+  }
+
   return (
-    <div className={`${large ? "h-14 w-14 md:h-16 md:w-16 text-base md:text-lg" : "h-9 w-9 text-[11px]"} ${user.tone} rounded-full flex items-center justify-center font-extrabold ring-4 ring-white shadow-sm shrink-0`}>
+    <div className={`${sizeClasses} ${user.tone} rounded-full flex items-center justify-center font-extrabold ring-4 ring-white shadow-sm shrink-0`}>
       {user.initials}
     </div>
   );
@@ -59,13 +70,10 @@ export default function Leaderboard() {
     async function initData() {
       setLoading(true);
       try {
-        // Cek user login saat ini
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setCurrentUserId(user.id);
         }
-
-        // Fetch data profil dari Supabase
         await fetchLeaderboardData();
       } catch (err) {
         console.error("Error fetching leaderboard:", err);
@@ -77,14 +85,13 @@ export default function Leaderboard() {
     initData();
   }, [filter]);
 
-  // 2. Fungsi Fetch Data dari Database Supabase
+  // 2. Fungsi Fetch Data dari Database Supabase (Termasuk avatar_url)
   const fetchLeaderboardData = async () => {
     let queryBuilder = supabase
       .from("profiles")
-      .select("id, full_name, email, points, total_scan, created_at")
+      .select("id, full_name, email, points, total_scan, avatar_url, created_at")
       .order("points", { ascending: false });
 
-    // Filter berdasarkan rentang waktu jika ada
     if (filter === "Mingguan") {
       const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       queryBuilder = queryBuilder.gte("created_at", oneWeekAgo);
@@ -96,12 +103,12 @@ export default function Leaderboard() {
     const { data, error } = await queryBuilder;
 
     if (!error && data) {
-      // Map data Supabase ke struktur yang dipakai UI
       const formattedData = data.map((item, index) => ({
         id: item.id,
         rank: index + 1,
         name: item.full_name || item.email?.split("@")[0] || "Pengguna TongCi",
         initials: getInitials(item.full_name || item.email),
+        avatarUrl: item.avatar_url || null,
         scans: item.total_scan || 0,
         points: item.points || 0,
         level: getLevel(item.points),
@@ -112,7 +119,7 @@ export default function Leaderboard() {
     }
   };
 
-  // 3. Listener Realtime Supabase (Otomatis update saat ada perubahan data di DB)
+  // 3. Listener Realtime Supabase
   useEffect(() => {
     const channel = supabase
       .channel("realtime_leaderboard")
@@ -124,7 +131,6 @@ export default function Leaderboard() {
           table: "profiles",
         },
         () => {
-          // Jika ada perubahaan poin/profile di database, panggil fungsi reload
           fetchLeaderboardData();
         }
       )
@@ -147,7 +153,7 @@ export default function Leaderboard() {
     return profiles.find((u) => u.id === currentUserId);
   }, [profiles, currentUserId]);
 
-  // 6. Susun Top 3 Podium (Juara 1 di tengah untuk layar sedang/besar)
+  // 6. Susun Top 3 Podium
   const medals = useMemo(() => {
     if (profiles.length < 3) return [];
     return [
