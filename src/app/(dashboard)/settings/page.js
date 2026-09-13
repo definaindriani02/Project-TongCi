@@ -6,7 +6,6 @@ import {
   Bell,
   Camera,
   CheckCircle2,
-  Eye,
   LockKeyhole,
   Monitor,
   Save,
@@ -66,7 +65,6 @@ const menu = [
   ["Keamanan", LockKeyhole],
   ["Notifikasi", Bell],
   ["Tampilan", Monitor],
-  ["Privasi", Eye],
 ];
 
 function Toggle({ enabled, onChange }) {
@@ -874,30 +872,6 @@ export default function SettingsPage() {
                 </label>
               </div>
             </div>
-          </Section>
-
-          <Section
-            id="privasi"
-            title="Privasi"
-            description="Atur visibilitas informasi Anda di komunitas."
-          >
-            {renderOptions([
-              [
-                "Profil Publik",
-                "Izinkan pengguna lain melihat profil Anda.",
-                "privacy_public_profile",
-              ],
-              [
-                "Tampilkan Ranking",
-                "Tampilkan nama Anda di leaderboard.",
-                "privacy_show_rank",
-              ],
-              [
-                "Riwayat Aktivitas Publik",
-                "Bagikan aktivitas kontribusi terbaru Anda.",
-                "privacy_public_activity",
-              ],
-            ])}
           </Section>
 
           <section className="rounded-2xl border border-pink-100 bg-pink-50 p-4">
