@@ -85,11 +85,11 @@ export default function Leaderboard() {
     initData();
   }, [filter]);
 
-  // 2. Fungsi Fetch Data dari Database Supabase (Termasuk avatar_url)
+  // 2. Fungsi Fetch Data dari Database Supabase (Termasuk avatar_url dan preferensi privasi privacy_show_rank)
   const fetchLeaderboardData = async () => {
     let queryBuilder = supabase
       .from("profiles")
-      .select("id, full_name, email, points, total_scan, avatar_url, created_at")
+      .select("id, full_name, email, points, total_scan, avatar_url, created_at, privacy_show_rank")
       .order("points", { ascending: false });
 
     if (filter === "Mingguan") {
@@ -103,18 +103,39 @@ export default function Leaderboard() {
     const { data, error } = await queryBuilder;
 
     if (!error && data) {
-      const formattedData = data.map((item, index) => ({
-        id: item.id,
-        rank: index + 1,
-        name: item.full_name || item.email?.split("@")[0] || "Pengguna TongCi",
-        initials: getInitials(item.full_name || item.email),
-        avatarUrl: item.avatar_url || null,
-        scans: item.total_scan || 0,
-        points: item.points || 0,
-        level: getLevel(item.points),
-        tone: getTone(item.id),
-        isCurrentUser: item.id === currentUserId,
-      }));
+      let currentCachedPrivacy = null;
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem("tongci_privacy_show_rank");
+        if (cached !== null) currentCachedPrivacy = cached === "true";
+      }
+
+      const formattedData = data.map((item, index) => {
+        const isCurrentUser = item.id === currentUserId;
+        // Pengecekan privasi tampilkan peringkat: default true jika belum diset
+        let isShowRank = item.privacy_show_rank !== false;
+        if (isCurrentUser && currentCachedPrivacy !== null) {
+          isShowRank = currentCachedPrivacy;
+        }
+
+        const realFullName = item.full_name || item.email?.split("@")[0] || "Pengguna TongCi";
+        const displayName = isShowRank ? realFullName : "Pengguna Anonim";
+        const displayInitials = isShowRank ? getInitials(realFullName) : "PA";
+        const displayAvatar = isShowRank ? (item.avatar_url || null) : null;
+
+        return {
+          id: item.id,
+          rank: index + 1,
+          name: displayName,
+          initials: displayInitials,
+          avatarUrl: displayAvatar,
+          scans: item.total_scan || 0,
+          points: item.points || 0,
+          level: getLevel(item.points),
+          tone: getTone(item.id),
+          isCurrentUser,
+          showRank: isShowRank,
+        };
+      });
       setProfiles(formattedData);
     }
   };

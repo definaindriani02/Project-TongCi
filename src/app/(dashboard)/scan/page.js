@@ -161,24 +161,42 @@ export default function KlasifikasiAI() {
       setScanResult(data);
       setScanState("result");
 
-      // Insert otomatis notifikasi scan
+      // Insert otomatis notifikasi scan jika preferensi notifikasi scan aktif
       if (user?.id) {
-        const wasteName = data.item_name || "Sampah Terdeteksi";
-        const wasteCat = data.category || "Umum";
+        let isScanNotifEnabled = profile?.notif_scan !== false;
+        if (typeof window !== "undefined") {
+          const cached = localStorage.getItem("tongci_notif_scan");
+          if (cached !== null) isScanNotifEnabled = cached === "true";
+        }
+        try {
+          const { data: profCheck } = await supabase
+            .from("profiles")
+            .select("notif_scan")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (profCheck && typeof profCheck.notif_scan === "boolean") {
+            isScanNotifEnabled = profCheck.notif_scan;
+          }
+        } catch (e) {}
 
-        const { error: notifErr } = await supabase.from("notifications").insert([
-          {
-            user_id: user.id,
-            title: "Scan Sampah Berhasil! 🗑️",
-            message: `Sampah teridentifikasi sebagai ${wasteName} (${wasteCat}).`,
-            type: "scan",
-            is_read: false,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        if (isScanNotifEnabled) {
+          const wasteName = data.item_name || "Sampah Terdeteksi";
+          const wasteCat = data.category || "Umum";
 
-        if (notifErr) {
-          console.error("Gagal insert notifikasi scan:", notifErr);
+          const { error: notifErr } = await supabase.from("notifications").insert([
+            {
+              user_id: user.id,
+              title: "Scan Sampah Berhasil! 🗑️",
+              message: `Sampah teridentifikasi sebagai ${wasteName} (${wasteCat}).`,
+              type: "scan",
+              is_read: false,
+              created_at: new Date().toISOString(),
+            },
+          ]);
+
+          if (notifErr) {
+            console.error("Gagal insert notifikasi scan:", notifErr);
+          }
         }
       }
     } catch (err) {
@@ -233,20 +251,40 @@ export default function KlasifikasiAI() {
         })
         .eq("id", user.id);
 
-      const { error: notifPointErr } = await supabase.from("notifications").insert([
-        {
-          user_id: user.id,
-          title: "Poin Berhasil Diklaim! 🎉",
-          message: `Selamat! Kamu mendapatkan +${earnedPoints} poin dari pemindaian ${wasteName} (${wasteCat}).`,
-          type: "points",
-          is_read: false,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-
-      if (notifPointErr) {
-        console.error("Gagal insert notifikasi poin:", notifPointErr);
+      // Periksa preferensi notifikasi poin pengguna
+      let isPointsNotifEnabled = profile?.notif_points !== false;
+      if (typeof window !== "undefined") {
+        const cachedPoints = localStorage.getItem("tongci_notif_points");
+        if (cachedPoints !== null) isPointsNotifEnabled = cachedPoints === "true";
       }
+      try {
+        const { data: profCheck } = await supabase
+          .from("profiles")
+          .select("notif_points")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (profCheck && typeof profCheck.notif_points === "boolean") {
+          isPointsNotifEnabled = profCheck.notif_points;
+        }
+      } catch (e) {}
+
+      if (isPointsNotifEnabled) {
+        const { error: notifPointErr } = await supabase.from("notifications").insert([
+          {
+            user_id: user.id,
+            title: "Poin Berhasil Diklaim! 🎉",
+            message: `Selamat! Kamu mendapatkan +${earnedPoints} poin dari pemindaian ${wasteName} (${wasteCat}).`,
+            type: "points",
+            is_read: false,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+        if (notifPointErr) {
+          console.error("Gagal insert notifikasi poin:", notifPointErr);
+        }
+      }
+
 
       setProfile((prev) => ({
         ...prev,

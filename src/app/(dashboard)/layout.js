@@ -32,7 +32,7 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-slate-50 text-slate-800 font-sans overflow-x-hidden" suppressHydrationWarning>
+    <div className="relative min-h-screen w-full bg-slate-50 text-slate-800 font-sans overflow-x-clip" suppressHydrationWarning>
       {/* Collapsible Sidebar */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 

@@ -175,12 +175,11 @@ export default function SettingsPage() {
   const [switches, setSwitches] = useState({
     notif_scan: true,
     notif_points: true,
-    notif_promo: false,
-    notif_app_update: true,
     privacy_public_profile: true,
     privacy_show_rank: true,
     privacy_public_activity: false,
   });
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   // State Tampilan / Bahasa
   const [language, setLanguage] = useState("id");
@@ -254,8 +253,6 @@ export default function SettingsPage() {
             setSwitches({
               notif_scan: profData.notif_scan ?? true,
               notif_points: profData.notif_points ?? true,
-              notif_promo: profData.notif_promo ?? false,
-              notif_app_update: profData.notif_app_update ?? true,
               privacy_public_profile: profData.privacy_public_profile ?? true,
               privacy_show_rank: profData.privacy_show_rank ?? true,
               privacy_public_activity:
@@ -309,8 +306,6 @@ export default function SettingsPage() {
                 setSwitches({
                   notif_scan: updated.notif_scan ?? true,
                   notif_points: updated.notif_points ?? true,
-                  notif_promo: updated.notif_promo ?? false,
-                  notif_app_update: updated.notif_app_update ?? true,
                   privacy_public_profile:
                     updated.privacy_public_profile ?? true,
                   privacy_show_rank: updated.privacy_show_rank ?? true,
@@ -581,6 +576,10 @@ export default function SettingsPage() {
 
     setSwitches((prev) => ({ ...prev, [key]: newValue }));
 
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`tongci_${key}`, String(newValue));
+    }
+
     if (!userId) return;
 
     try {
@@ -625,8 +624,41 @@ export default function SettingsPage() {
   };
 
   const handleDeleteAccount = async () => {
-    setShowDeleteModal(false);
-    showNotification("Permintaan hapus akun dikirim.");
+    if (!userId) {
+      alert("Sesi akun tidak ditemukan. Silakan muat ulang halaman.");
+      return;
+    }
+
+    try {
+      setDeletingAccount(true);
+
+      const res = await fetch(`/api/profile?userId=${userId}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Gagal menghapus akun.");
+      }
+
+      setShowDeleteModal(false);
+      showNotification("Akun Anda telah berhasil dihapus secara permanen.");
+
+      // Bersihkan sesi Supabase dan cache browser
+      await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 800);
+      }
+    } catch (err) {
+      console.error("Error deleting account:", err);
+      alert("Gagal menghapus akun: " + (err.message || err));
+      setDeletingAccount(false);
+    }
   };
 
   if (loading) {
@@ -807,9 +839,26 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handleSaveProfile}
                 disabled={savingAccount}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50 cursor-pointer"
               >
                 <Save size={15} /> {savingAccount ? "Menyimpan..." : "Simpan Perubahan"}
+              </button>
+            </div>
+
+            {/* ZONA BERBAHAYA / HAPUS AKUN - POSISI PALING BAWAH PROFIL */}
+            <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-rose-600">Hapus Akun</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Hapus akun Anda beserta seluruh data poin dan riwayat secara permanen.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95 shrink-0 cursor-pointer"
+              >
+                <Trash2 size={14} /> Hapus Akun
               </button>
             </div>
           </Section>
@@ -849,19 +898,12 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="mt-5 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(true)}
-                className="text-xs font-bold text-rose-500 hover:text-rose-600"
-              >
-                Hapus Akun?
-              </button>
+            <div className="mt-5 flex justify-end">
               <button
                 type="button"
                 onClick={handleSavePassword}
                 disabled={savingPass}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-emerald-700 active:scale-95 disabled:opacity-50 cursor-pointer"
               >
                 <Save size={15} /> {savingPass ? "Menyimpan..." : "Perbarui Password"}
               </button>
@@ -880,22 +922,6 @@ export default function SettingsPage() {
                 { [
                   ["Notifikasi Scan QR", "Pemberitahuan saat berhasil melakukan scan.", "notif_scan"],
                   ["Poin & Reward", "Informasi penambahan poin atau penukaran.", "notif_points"],
-                ].map(([label, desc, key]) => (
-                  <div key={key} className="mb-3 flex items-center justify-between rounded-2xl bg-slate-50 p-4">
-                    <div>
-                      <p className="text-xs font-bold text-slate-800">{label}</p>
-                      <p className="text-[10px] text-slate-400">{desc}</p>
-                    </div>
-                    <Toggle enabled={switches[key]} onChange={() => handleToggle(key)} />
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <h3 className="mb-3 text-xs font-bold text-slate-700">Sistem & Promo</h3>
-                { [
-                  ["Promo & Diskon", "Info menarik seputar promo terbaru.", "notif_promo"],
-                  ["Pembaruan Aplikasi", "Informasi update fitur dan perbaikan.", "notif_app_update"],
                 ].map(([label, desc, key]) => (
                   <div key={key} className="mb-3 flex items-center justify-between rounded-2xl bg-slate-50 p-4">
                     <div>
@@ -926,7 +952,6 @@ export default function SettingsPage() {
                   className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50"
                 >
                   <option value="id">Bahasa Indonesia</option>
-                  <option value="en">English (US)</option>
                 </select>
               </label>
 
@@ -1083,17 +1108,19 @@ export default function SettingsPage() {
             <div className="flex justify-end gap-2">
               <button
                 type="button"
+                disabled={deletingAccount}
                 onClick={() => setShowDeleteModal(false)}
-                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={deletingAccount}
                 onClick={handleDeleteAccount}
-                className="rounded-xl bg-pink-500 px-4 py-2 text-xs font-bold text-white hover:bg-pink-600"
+                className="rounded-xl bg-pink-500 px-4 py-2 text-xs font-bold text-white hover:bg-pink-600 disabled:opacity-50 cursor-pointer"
               >
-                Ya, Hapus
+                {deletingAccount ? "Menghapus..." : "Ya, Hapus"}
               </button>
             </div>
           </div>

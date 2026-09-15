@@ -14,7 +14,9 @@ import {
   Recycle,
   ScanLine,
   ShieldCheck,
+  Trash2,
   UserRound,
+  X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -49,6 +51,8 @@ export default function ProfilPage() {
   const [userRank, setUserRank] = useState("-");
   const [recycledKg, setRecycledKg] = useState("0");
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -260,6 +264,41 @@ export default function ProfilPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/login";
+  };
+
+  const handleDeleteAccount = async () => {
+    const targetId = profile?.id;
+    if (!targetId) {
+      alert("Sesi pengguna tidak valid. Silakan login kembali.");
+      return;
+    }
+
+    try {
+      setDeletingAccount(true);
+
+      const res = await fetch(`/api/profile?userId=${targetId}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Gagal menghapus akun.");
+      }
+
+      setShowDeleteModal(false);
+
+      await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/login";
+      }
+    } catch (err) {
+      console.error("Error deleting account:", err);
+      alert("Gagal menghapus akun: " + (err.message || err));
+      setDeletingAccount(false);
+    }
   };
 
   // Format tanggal lahir & riwayat
@@ -514,28 +553,76 @@ export default function ProfilPage() {
         </div>
       </section>
 
-      {/* Action Buttons */}
-      <section className="flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row">
+      {/* Action Buttons - Posisi Paling Bawah Profil */}
+      <section className="flex flex-col gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center">
         <Link
           href="/settings#akun"
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-bold text-emerald-600 transition-all hover:-translate-y-0.5 hover:bg-emerald-50 active:scale-95"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-bold text-emerald-600 transition-all hover:-translate-y-0.5 hover:bg-emerald-50 active:scale-95 cursor-pointer"
         >
           <Edit3 size={14} /> Edit Profil
         </Link>
         <Link
           href="/settings#keamanan"
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-bold text-emerald-600 transition-all hover:-translate-y-0.5 hover:bg-emerald-50 active:scale-95"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-bold text-emerald-600 transition-all hover:-translate-y-0.5 hover:bg-emerald-50 active:scale-95 cursor-pointer"
         >
           <LockKeyhole size={14} /> Ubah Password
         </Link>
         <button
           type="button"
           onClick={handleLogout}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-pink-200 bg-pink-50 px-4 py-2.5 text-xs font-bold text-pink-600 transition-all hover:-translate-y-0.5 hover:bg-pink-100 active:scale-95"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-pink-200 bg-pink-50 px-4 py-2.5 text-xs font-bold text-pink-600 transition-all hover:-translate-y-0.5 hover:bg-pink-100 active:scale-95 cursor-pointer"
         >
           <LogOut size={14} /> Logout
         </button>
+        <button
+          type="button"
+          onClick={() => setShowDeleteModal(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-bold text-rose-600 transition-all hover:-translate-y-0.5 hover:bg-rose-100 active:scale-95 cursor-pointer sm:ml-auto"
+        >
+          <Trash2 size={14} /> Hapus Akun
+        </button>
       </section>
+
+      {/* MODAL HAPUS AKUN */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm space-y-4 rounded-3xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-extrabold text-slate-800">
+                Konfirmasi Hapus Akun
+              </h3>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-xs leading-relaxed text-slate-500">
+              Apakah kamu yakin ingin menghapus akun ini? Semua data poin, riwayat scan,
+              dan informasi akun kamu akan dihapus permanen.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={deletingAccount}
+                onClick={() => setShowDeleteModal(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={deletingAccount}
+                onClick={handleDeleteAccount}
+                className="rounded-xl bg-pink-500 px-4 py-2 text-xs font-bold text-white hover:bg-pink-600 disabled:opacity-50 cursor-pointer"
+              >
+                {deletingAccount ? "Menghapus..." : "Ya, Hapus"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+}

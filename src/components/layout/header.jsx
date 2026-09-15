@@ -114,16 +114,33 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
     let notifChannel = null;
     let intervalId = null;
 
-    const fetchUnreadCount = async (userId) => {
+    const fetchUnreadCount = async (userId, customProfile = null) => {
       try {
-        // Ambil data yang is_read false ATAU null agar aman
+        const activeProfile = customProfile || profile;
+        let prefScan = activeProfile?.notif_scan !== false;
+        let prefPoints = activeProfile?.notif_points !== false;
+
+        if (typeof window !== "undefined") {
+          const cachedScan = localStorage.getItem("tongci_notif_scan");
+          if (cachedScan !== null) prefScan = cachedScan === "true";
+          const cachedPoints = localStorage.getItem("tongci_notif_points");
+          if (cachedPoints !== null) prefPoints = cachedPoints === "true";
+        }
+
+        // Ambil data yang is_read false ATAU null agar aman beserta tipe notifikasinya
         const { data, error } = await supabase
           .from("notifications")
-          .select("id, is_read")
+          .select("id, is_read, type")
           .eq("user_id", userId);
 
         if (!error && data) {
-          const unread = data.filter((item) => item.is_read === false || item.is_read === null);
+          const unread = data.filter((item) => {
+            const isUnread = item.is_read === false || item.is_read === null;
+            if (!isUnread) return false;
+            if (!prefScan && item.type === "scan") return false;
+            if (!prefPoints && (item.type === "points" || item.type === "poin")) return false;
+            return true;
+          });
           setUnreadCount(unread.length);
         }
       } catch (err) {
@@ -151,7 +168,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           setPoints(prof.points || 0);
         }
 
-        fetchUnreadCount(currentUser.id);
+        fetchUnreadCount(currentUser.id, prof);
 
         // Fallback Polling setiap 8 detik untuk memastikan sinkronisasi mutlak
         intervalId = setInterval(() => {
@@ -174,10 +191,12 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
               if (payload.new) {
                 setProfile(payload.new);
                 setPoints(payload.new.points || 0);
+                fetchUnreadCount(currentUser.id, payload.new);
               }
             }
           )
           .subscribe();
+
 
         // Realtime listener notifications
         const notifChannelId = `header-notif-${currentUser.id}-${Date.now()}`;
@@ -270,7 +289,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
     if (pathname?.startsWith("/edukasi")) return "Edukasi Sampah";
     if (pathname === "/scan") return "Klasifikasi AI";
     if (pathname === "/statistik") return "Statistik";
-    if (pathname === "/leaderboard") return "Leaderboard & Reward";
+    if (pathname === "/leaderboard") return "Leaderboard";
     if (pathname === "/riwayat") return "Riwayat Aktivitas";
     if (pathname === "/chat") return "CiCi Chat AI";
     if (pathname === "/profil" || pathname === "/profile")
@@ -328,7 +347,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between gap-2 sm:gap-4 border-b border-slate-100 bg-white/95 backdrop-blur-md px-3 sm:px-6">
+    <header className="sticky top-0 z-50 flex h-16 w-full items-center justify-between gap-2 sm:gap-4 border-b border-slate-100 bg-white/95 backdrop-blur-md px-3 sm:px-6">
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -394,9 +413,8 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
                       type="button"
                       onClick={() => handleSelectResult(item)}
                       onMouseEnter={() => setSelectedIndex(idx)}
-                      className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${
-                        isSelected ? "bg-[#22C55E]/10 text-slate-900" : "hover:bg-slate-50 text-slate-700"
-                      }`}
+                      className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-xl text-left transition-colors cursor-pointer ${isSelected ? "bg-[#22C55E]/10 text-slate-900" : "hover:bg-slate-50 text-slate-700"
+                        }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className="text-base shrink-0 p-1.5 rounded-lg bg-white border border-slate-100 shadow-2xs">
@@ -440,7 +458,7 @@ export default function Header({ sidebarOpen, setSidebarOpen, title = "" }) {
           title="Notifikasi"
         >
           <Bell size={20} />
-          
+
           {unreadCount > 0 && (
             <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-pink-500 ring-2 ring-white animate-ping" />
           )}

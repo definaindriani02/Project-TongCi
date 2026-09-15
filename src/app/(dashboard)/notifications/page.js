@@ -8,6 +8,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
+  const [userPrefs, setUserPrefs] = useState({ notif_scan: true, notif_points: true });
 
   useEffect(() => {
     let channel;
@@ -21,7 +22,32 @@ export default function NotificationsPage() {
           const currentUserId = session.user.id;
           setUserId(currentUserId);
 
-          // 1. Fetch data awal notifikasi
+          // 1. Ambil preferensi notifikasi pengguna dari cache/profil
+          let prefScan = true;
+          let prefPoints = true;
+
+          if (typeof window !== 'undefined') {
+            const cachedScan = localStorage.getItem('tongci_notif_scan');
+            if (cachedScan !== null) prefScan = cachedScan === 'true';
+            const cachedPoints = localStorage.getItem('tongci_notif_points');
+            if (cachedPoints !== null) prefPoints = cachedPoints === 'true';
+          }
+
+          const { data: profData } = await supabase
+            .from('profiles')
+            .select('notif_scan, notif_points')
+            .eq('id', currentUserId)
+            .maybeSingle();
+
+          if (profData) {
+            if (typeof profData.notif_scan === 'boolean') prefScan = profData.notif_scan;
+            if (typeof profData.notif_points === 'boolean') prefPoints = profData.notif_points;
+          }
+
+          const currentPrefs = { notif_scan: prefScan, notif_points: prefPoints };
+          setUserPrefs(currentPrefs);
+
+          // 2. Fetch data awal notifikasi dan saring sesuai toggle pengguna
           const { data, error } = await supabase
             .from('notifications')
             .select('*')
@@ -31,10 +57,15 @@ export default function NotificationsPage() {
           if (error) {
             console.error('Error fetching notifications:', error);
           } else {
-            setNotifications(data || []);
+            const filtered = (data || []).filter((item) => {
+              if (!prefScan && item.type === 'scan') return false;
+              if (!prefPoints && (item.type === 'points' || item.type === 'poin')) return false;
+              return true;
+            });
+            setNotifications(filtered);
           }
 
-          // 2. Realtime Listener dengan Channel ID Unik
+          // 3. Realtime Listener dengan Channel ID Unik
           const channelId = `realtime-notif-page-${currentUserId}-${Date.now()}`;
           channel = supabase
             .channel(channelId)
@@ -48,16 +79,45 @@ export default function NotificationsPage() {
               },
               (payload) => {
                 if (payload.eventType === 'INSERT') {
+                  const newItem = payload.new;
+                  // Saring berdasarkan preferensi notifikasi
+                  if (!prefScan && newItem.type === 'scan') return;
+                  if (!prefPoints && (newItem.type === 'points' || newItem.type === 'poin')) return;
+
                   setNotifications((prev) => {
-                    // Hindari duplikasi jika item sudah ada
-                    if (prev.some((n) => n.id === payload.new.id)) return prev;
-                    return [payload.new, ...prev];
+                    if (prev.some((n) => n.id === newItem.id)) return prev;
+                    return [newItem, ...prev];
                   });
                 } else if (payload.eventType === 'UPDATE') {
                   setNotifications((prev) =>
                     prev.map((item) =>
                       item.id === payload.new.id ? payload.new : item
                     )
+                  );
+                }
+              }
+            )
+            .on(
+              'postgres_changes',
+              {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'profiles',
+                filter: `id=eq.${currentUserId}`,
+              },
+              (payload) => {
+                if (payload.new) {
+                  const updatedScan = payload.new.notif_scan ?? true;
+                  const updatedPoints = payload.new.notif_points ?? true;
+                  prefScan = updatedScan;
+                  prefPoints = updatedPoints;
+                  setUserPrefs({ notif_scan: updatedScan, notif_points: updatedPoints });
+                  setNotifications((prev) =>
+                    prev.filter((item) => {
+                      if (!updatedScan && item.type === 'scan') return false;
+                      if (!updatedPoints && (item.type === 'points' || item.type === 'poin')) return false;
+                      return true;
+                    })
                   );
                 }
               }
@@ -77,6 +137,7 @@ export default function NotificationsPage() {
       if (channel) supabase.removeChannel(channel);
     };
   }, []);
+
 
   // Fungsi tandai semua sudah dibaca
   const markAllAsRead = async () => {

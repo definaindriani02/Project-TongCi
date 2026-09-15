@@ -19,20 +19,17 @@ function SidebarLink({ icon, label, href, active, sidebarOpen, onNavigate }) {
     <Link
       href={href}
       onClick={onNavigate}
-      className={`flex items-center rounded-xl text-xs font-semibold transition-all duration-200 ${
-        sidebarOpen ? "px-4 py-2.5 gap-3" : "p-2 justify-center"
-      } ${
-        active
+      className={`flex items-center rounded-xl text-xs font-semibold transition-all duration-200 ${sidebarOpen ? "px-4 py-2.5 gap-3" : "p-2 justify-center"
+        } ${active
           ? "bg-[#22C55E] text-white shadow-md shadow-[#22C55E]/20 scale-[1.02]"
           : "text-slate-600 hover:bg-[#22C55E]/10 hover:text-[#22C55E]"
-      }`}
+        }`}
     >
       <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-          active
+        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${active
             ? "bg-white/20 text-white"
             : "bg-[#22C55E]/10 text-[#22C55E] group-hover:bg-[#22C55E]/20"
-        }`}
+          }`}
       >
         {icon}
       </div>
@@ -72,15 +69,14 @@ export default function Sidebar({ sidebarOpen = true, setSidebarOpen }) {
       {sidebarOpen && (
         <div
           onClick={handleClose}
-          className="fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden"
+          className="fixed inset-0 z-50 bg-black/50 transition-opacity duration-300 md:hidden"
         />
       )}
 
       {/* Sidebar Container (Mobile Drawer Overlay & Desktop Fixed Sidebar) */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-slate-100 flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out overflow-y-auto ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 z-[60] h-full w-64 bg-white border-r border-slate-100 flex flex-col justify-between p-4 transition-transform duration-300 ease-in-out overflow-y-auto ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="w-full">
           {/* Logo Utama */}
