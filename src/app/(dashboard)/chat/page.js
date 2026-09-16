@@ -5,14 +5,83 @@ import { Send, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 
+const DEFAULT_MESSAGES = [
+  {
+    sender: "cici",
+    text: "Halo! Aku CiCi, asisten lingkungan pintarmu. 🤖💚\nAda yang bisa kubantu hari ini? Kamu bisa tanya seputar pemilahan sampah, tips daur ulang, atau cara membuat kompos!",
+  },
+];
+
+// Batasan masa retensi riwayat chat 24 jam (dalam milidetik)
+const CHAT_RETENTION_MS = 24 * 60 * 60 * 1000;
+
+function getStorageKey(uid) {
+  return uid ? `tongci_chat_history_${uid}` : "tongci_chat_history";
+}
+
+function saveChatHistory(msgs, sId, uid) {
+  if (typeof window === "undefined") return;
+  try {
+    const key = getStorageKey(uid);
+    const payload = {
+      messages: msgs,
+      sessionId: sId || null,
+      lastUpdated: Date.now(),
+    };
+    localStorage.setItem(key, JSON.stringify(payload));
+  } catch (err) {
+    console.error("Gagal menyimpan riwayat chat:", err);
+  }
+}
+
+function loadChatHistory(uid) {
+  if (typeof window === "undefined") return null;
+  try {
+    const key = getStorageKey(uid);
+    const raw =
+      localStorage.getItem(key) ||
+      (uid ? localStorage.getItem("tongci_chat_history") : null);
+    if (!raw) return null;
+
+    const data = JSON.parse(raw);
+    const now = Date.now();
+    const lastUpdated =
+      data.lastUpdated ||
+      (data.messages?.length > 0 &&
+        data.messages[data.messages.length - 1]?.timestamp) ||
+      0;
+
+    // Bersihkan jika riwayat chat sudah melewati masa retensi 24 jam sejak pesan terakhir
+    if (now - lastUpdated > CHAT_RETENTION_MS) {
+      localStorage.removeItem(key);
+      if (uid) localStorage.removeItem("tongci_chat_history");
+      return null;
+    }
+
+    // Saring pesan yang masih berada dalam kurun waktu 24 jam
+    const validMessages = (data.messages || []).filter((msg) => {
+      if (!msg.timestamp) return true;
+      return now - msg.timestamp <= CHAT_RETENTION_MS;
+    });
+
+    if (validMessages.length === 0) {
+      localStorage.removeItem(key);
+      return null;
+    }
+
+    return {
+      messages: validMessages,
+      sessionId: data.sessionId || null,
+    };
+  } catch (err) {
+    console.error("Gagal memuat riwayat chat:", err);
+    return null;
+  }
+}
+
 export default function ChatPage() {
   const supabase = createClient();
-  const [messages, setMessages] = useState([
-    {
-      sender: "cici",
-      text: "Halo! Aku CiCi, asisten lingkungan pintarmu. 🤖💚\nAda yang bisa kubantu hari ini? Kamu bisa tanya seputar pemilahan sampah, tips daur ulang, atau cara membuat kompos!",
-    },
-  ]);
+  const [messages, setMessages] = useState(DEFAULT_MESSAGES);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -24,21 +93,48 @@ export default function ChatPage() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 1. Ambil data user yang sedang login dari Supabase
+  // 1. Ambil data user yang sedang login dari Supabase & muat riwayat chat
   useEffect(() => {
-    async function getUser() {
+    let isMounted = true;
+
+    async function initUserAndChat() {
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (user) {
-          setUserId(user.id);
+
+        const currentUid = user?.id || null;
+        if (isMounted && currentUid) {
+          setUserId(currentUid);
+        }
+
+        // Muat riwayat chat yang tersimpan (dengan batasan 24 jam)
+        const saved = loadChatHistory(currentUid);
+        if (isMounted && saved && saved.messages && saved.messages.length > 0) {
+          setMessages(saved.messages);
+          if (saved.sessionId) {
+            setSessionId(saved.sessionId);
+          }
         }
       } catch (err) {
-        console.warn("User belum terautentikasi:", err.message);
+        console.warn("User belum terautentikasi atau gagal memuat chat:", err.message);
+        if (isMounted) {
+          const saved = loadChatHistory(null);
+          if (saved && saved.messages && saved.messages.length > 0) {
+            setMessages(saved.messages);
+            if (saved.sessionId) {
+              setSessionId(saved.sessionId);
+            }
+          }
+        }
       }
     }
-    getUser();
+
+    initUserAndChat();
+
+    return () => {
+      isMounted = false;
+    };
   }, [supabase]);
 
   // 2. Fungsi Mengirim Pesan
@@ -48,7 +144,16 @@ export default function ChatPage() {
 
     const userText = input.trim();
     setInput("");
-    setMessages((prev) => [...prev, { sender: "user", text: userText }]);
+
+    const userMsg = {
+      sender: "user",
+      text: userText,
+      timestamp: Date.now(),
+    };
+
+    const updatedWithUser = [...messages, userMsg];
+    setMessages(updatedWithUser);
+    saveChatHistory(updatedWithUser, sessionId, userId);
     setLoading(true);
 
     try {
@@ -67,29 +172,48 @@ export default function ChatPage() {
       const data = await res.json();
 
       if (res.ok && data.reply) {
-        setMessages((prev) => [...prev, { sender: "cici", text: data.reply }]);
+        const aiMsg = {
+          sender: "cici",
+          text: data.reply,
+          timestamp: Date.now(),
+        };
 
-        // Simpan sessionId aktif yang dikirimkan backend
+        const currentSessionId = data.sessionId || sessionId;
         if (data.sessionId && !sessionId) {
           setSessionId(data.sessionId);
         }
+
+        setMessages((prev) => {
+          const updated = [...prev, aiMsg];
+          saveChatHistory(updated, currentSessionId, userId);
+          return updated;
+        });
       } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: "cici",
-            text:
-              "Maaf ya, terjadi kesalahan: " +
-              (data.error || "Gagal merespon."),
-          },
-        ]);
+        const errorMsg = {
+          sender: "cici",
+          text:
+            "Maaf ya, terjadi kesalahan: " +
+            (data.error || "Gagal merespon."),
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => {
+          const updated = [...prev, errorMsg];
+          saveChatHistory(updated, sessionId, userId);
+          return updated;
+        });
       }
     } catch (err) {
       console.error("Error sending message:", err);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "cici", text: `Terjadi kendala koneksi: ${err.message}` },
-      ]);
+      const connErrMsg = {
+        sender: "cici",
+        text: `Terjadi kendala koneksi: ${err.message}`,
+        timestamp: Date.now(),
+      };
+      setMessages((prev) => {
+        const updated = [...prev, connErrMsg];
+        saveChatHistory(updated, sessionId, userId);
+        return updated;
+      });
     } finally {
       setLoading(false);
     }
