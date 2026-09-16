@@ -688,7 +688,7 @@ export default function SettingsPage() {
       </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[210px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-3xl border border-slate-100 bg-white p-3 shadow-sm">
+        <aside className="sticky top-20 z-10 h-fit rounded-3xl border border-slate-100 bg-white p-3 shadow-sm">
           <nav className="flex gap-1 overflow-x-auto lg:flex-col">
             {menu.map(([item, Icon]) => (
               <button

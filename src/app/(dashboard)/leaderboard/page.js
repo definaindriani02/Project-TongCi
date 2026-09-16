@@ -25,9 +25,9 @@ function getTone(idStr) {
 
 // Helper untuk menentukan Level Pengguna berdasarkan Poin
 function getLevel(points = 0) {
-  if (points >= 5000) return "Eco Hero";
-  if (points >= 2000) return "Top Contributor";
-  if (points >= 500) return "Top 10";
+  if (points >= 200) return "Eco Hero";
+  if (points >= 100) return "Top Contributor";
+  if (points >= 50) return "Top 10";
   return "Contributor";
 }
 
@@ -276,9 +276,8 @@ export default function Leaderboard() {
                 <button
                   onClick={() => setFilter(item)}
                   key={item}
-                  className={`rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-all ${
-                    filter === item ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-emerald-600"
-                  }`}
+                  className={`rounded-lg px-2.5 py-1.5 text-[10px] font-bold transition-all ${filter === item ? "bg-white text-emerald-600 shadow-sm" : "text-slate-500 hover:text-emerald-600"
+                    }`}
                 >
                   {item}
                 </button>
@@ -321,15 +320,14 @@ export default function Leaderboard() {
                   <td className="px-4 py-3 text-center text-xs font-bold text-slate-600">{user.scans}x</td>
                   <td className="px-4 py-3 text-center text-xs font-extrabold text-amber-600">{user.points.toLocaleString("id-ID")}</td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2.5 py-1 text-[9px] font-extrabold ${
-                      user.level === "Eco Hero"
+                    <span className={`rounded-full px-2.5 py-1 text-[9px] font-extrabold ${user.level === "Eco Hero"
                         ? "bg-emerald-100 text-emerald-700"
                         : user.level === "Top Contributor"
-                        ? "bg-violet-100 text-violet-700"
-                        : user.level === "Top 10"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-slate-100 text-slate-600"
-                    }`}>
+                          ? "bg-violet-100 text-violet-700"
+                          : user.level === "Top 10"
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-slate-100 text-slate-600"
+                      }`}>
                       {user.level}
                     </span>
                   </td>

@@ -315,18 +315,44 @@ export default function Dashboard() {
         console.error("Gagal mencatat riwayat penukaran:", historyErr);
       }
 
-      // Kirim notifikasi transaksi penukaran reward
+      // Kirim notifikasi transaksi penukaran reward jika toggle "Poin & Reward" aktif
+      let isPointsNotifEnabled = profile?.notif_points !== false;
+      if (typeof window !== "undefined") {
+        const cachedPoints = localStorage.getItem("tongci_notif_points");
+        if (cachedPoints !== null) isPointsNotifEnabled = cachedPoints === "true";
+      }
       try {
-        await supabase
-          .from("notifications")
-          .insert({
-            user_id: user.id,
-            title: "Penukaran Berhasil! 🎁",
-            message: `Kamu berhasil menukarkan ${cost} Pts untuk ${rewardTitle}.`,
-            is_read: false,
-          });
-      } catch (notifErr) {
-        // Abaikan jika notifikasi gagal
+        const { data: profCheck } = await supabase
+          .from("profiles")
+          .select("notif_points")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (profCheck && typeof profCheck.notif_points === "boolean") {
+          isPointsNotifEnabled = profCheck.notif_points;
+        }
+      } catch (e) {}
+
+      if (isPointsNotifEnabled) {
+        try {
+          const { error: notifErr } = await supabase
+            .from("notifications")
+            .insert([
+              {
+                user_id: user.id,
+                title: "Penukaran Berhasil! 🎁",
+                message: `Kamu berhasil menukarkan ${cost} Pts untuk ${rewardTitle}.`,
+                type: "points",
+                is_read: false,
+                created_at: new Date().toISOString(),
+              },
+            ]);
+
+          if (notifErr) {
+            console.error("Gagal mengirim notifikasi penukaran reward:", notifErr);
+          }
+        } catch (notifErr) {
+          console.error("Error notifikasi penukaran reward:", notifErr);
+        }
       }
 
       // Refresh data dashboard agar aktivitas terkini langsung sinkron
