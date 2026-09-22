@@ -4,6 +4,21 @@ import React, { useState, useRef, useEffect } from "react";
 import { Cpu, Camera, Upload, RefreshCw, CheckCircle, Save, X, AlertCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+// Logika penambahan poin berdasarkan jenis sampah:
+// - Sampah Organik: +3 poin
+// - Sampah Anorganik: +5 poin
+// - Sampah B3: +10 poin
+const getCategoryPoints = (category = "") => {
+  const cat = (category || "").toLowerCase();
+  if (cat.includes("b3") || cat.includes("bahaya") || cat.includes("racun") || cat.includes("elektronik") || cat.includes("medis")) {
+    return 10;
+  }
+  if (cat.includes("organik") && !cat.includes("anorganik")) {
+    return 3;
+  }
+  return 5; // Sampah Anorganik (Plastik, Kertas, Logam, dsb.)
+};
+
 export default function KlasifikasiAI() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -155,6 +170,13 @@ export default function KlasifikasiAI() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        if (
+          res.status === 503 ||
+          res.status === 429 ||
+          (typeof data.error === "string" && (data.error.includes("503") || data.error.includes("429")))
+        ) {
+          throw new Error("Waduh, AI-nya lagi kecapekan gara-gara kebanyakan sampah yang di-scan! 😅 Istirahat sebentar ya, coba scan lagi beberapa detik lagi.");
+        }
         throw new Error(data.error || "Gagal menganalisis gambar.");
       }
 
@@ -201,7 +223,11 @@ export default function KlasifikasiAI() {
       }
     } catch (err) {
       console.error("Analysis Error:", err);
-      setErrorMsg(err.message || "Terjadi kesalahan saat klasifikasi gambar.");
+      if (err?.message?.includes("503") || err?.message?.includes("429")) {
+        setErrorMsg("Waduh, AI-nya lagi kecapekan gara-gara kebanyakan sampah yang di-scan! 😅 Istirahat sebentar ya, coba scan lagi beberapa detik lagi.");
+      } else {
+        setErrorMsg(err.message || "Terjadi kesalahan saat klasifikasi gambar.");
+      }
       setScanState("idle");
     }
   };
@@ -221,7 +247,7 @@ export default function KlasifikasiAI() {
     try {
       const wasteName = scanResult.item_name || "Sampah Terdeteksi";
       const wasteCat = scanResult.category || "Anorganik";
-      const earnedPoints = 18;
+      const earnedPoints = getCategoryPoints(wasteCat);
       const confidenceScore = typeof scanResult.confidence === "number" ? Math.round(scanResult.confidence) : 85;
 
       const { error: insertError } = await supabase.from("scan_history").insert([
@@ -498,7 +524,7 @@ export default function KlasifikasiAI() {
                   </>
                 ) : (
                   <>
-                    <Save size={16} /> Simpan +18 pts
+                    <Save size={16} /> Simpan +{getCategoryPoints(scanResult.category)} pts
                   </>
                 )}
               </button>
