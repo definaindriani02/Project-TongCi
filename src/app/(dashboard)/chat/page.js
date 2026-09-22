@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Sparkles } from "lucide-react";
 import Image from "next/image";
+import ReactMarkdown from "react-markdown";
 import { createClient } from "@/utils/supabase/client";
 
 const DEFAULT_MESSAGES = [
@@ -189,11 +190,17 @@ export default function ChatPage() {
           return updated;
         });
       } else {
+        // Cek apakah error karena lonjakan server (503 / 429) atau teks error mengandung kode 503
+        const errorString = JSON.stringify(data);
+        let friendlyErrorText = "Waduh, AI-nya lagi kecapekan gara-gara kebanyakan sampah yang di-scan! 😅 Istirahat sebentar ya, coba tanya lagi beberapa detik lagi.";
+
+        if (!errorString.includes("503") && !errorString.includes("429")) {
+          friendlyErrorText = "Maaf ya, terjadi kesalahan: " + (data.error || "Gagal merespon.");
+        }
+
         const errorMsg = {
           sender: "cici",
-          text:
-            "Maaf ya, terjadi kesalahan: " +
-            (data.error || "Gagal merespon."),
+          text: friendlyErrorText,
           timestamp: Date.now(),
         };
         setMessages((prev) => {
@@ -206,7 +213,7 @@ export default function ChatPage() {
       console.error("Error sending message:", err);
       const connErrMsg = {
         sender: "cici",
-        text: `Terjadi kendala koneksi: ${err.message}`,
+        text: "Waduh, koneksinya lagi ngadat nih! 🌐 Coba cek internetmu sebentar lalu kirim ulang ya.",
         timestamp: Date.now(),
       };
       setMessages((prev) => {
@@ -266,12 +273,26 @@ export default function ChatPage() {
             </div>
 
             <div
-              className={`p-3 rounded-2xl text-xs leading-relaxed whitespace-pre-line font-medium shadow-sm border ${msg.sender === "user"
+              className={`p-3 rounded-2xl text-xs leading-relaxed font-medium shadow-sm border ${msg.sender === "user"
                   ? "bg-emerald-500 text-white border-emerald-600 rounded-tr-none"
                   : "bg-white text-slate-800 border-slate-100 rounded-tl-none"
                 }`}
             >
-              {msg.text}
+              {msg.sender === "user" ? (
+                <div className="whitespace-pre-line">{msg.text}</div>
+              ) : (
+                <ReactMarkdown
+                  components={{
+                    p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                    ul: ({ node, ...props }) => <ul className="list-disc pl-4 mb-2" {...props} />,
+                    ol: ({ node, ...props }) => <ol className="list-decimal pl-4 mb-2" {...props} />,
+                    li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+                    strong: ({ node, ...props }) => <strong className="font-bold text-slate-900" {...props} />,
+                  }}
+                >
+                  {msg.text}
+                </ReactMarkdown>
+              )}
             </div>
           </div>
         ))}
